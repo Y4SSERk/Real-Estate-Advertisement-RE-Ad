@@ -9,8 +9,11 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
+from dotenv import load_dotenv
 import os
 from pathlib import Path
+
+load_dotenv()  # Load .env file
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,12 +23,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-@&k7un75(je62o%r=@t%lqy7sabt=^*5emcq1c-#g^8()$iy##'
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(',')
 
 
 # Application definition
@@ -55,9 +58,7 @@ MIDDLEWARE = [
 ]
 
 # CORS (Allow Vite on port 5173)
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-] 
+CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS').split(',')
 
 ROOT_URLCONF = 'core.urls'
 
@@ -81,22 +82,15 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-"""
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-"""
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'REAdDB',       # Database name
-        'USER': 'admin',         # PostgreSQL username
-        'PASSWORD': 'admin123', # PostgreSQL password
-        #'HOST': 'localhost',         Use 'db' if using Docker
-        #'PORT': '5432',              Default PostgreSQL port
+        'NAME': os.getenv('DB_NAME'),       # Database name
+        'USER': os.getenv('DB_USER'),         # PostgreSQL username
+        'PASSWORD': os.getenv('DB_PASSWORD'), # PostgreSQL password
+        #'HOST': os.getenv('DB_HOST'),         Use 'db' if using Docker
+        #'PORT': os.getenv('DB_PORT'),              Default PostgreSQL port
     }
 }
 

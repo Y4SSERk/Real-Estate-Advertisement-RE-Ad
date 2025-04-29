@@ -1,27 +1,39 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import reactLogo from './assets/react.svg';
 import viteLogo from '/vite.svg';
 import './App.css';
-import axios from 'axios';  // Install with: `npm install axios`
 
 function App() {
   const [count, setCount] = useState(0);
   const [djangoMessage, setDjangoMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Fetch data from Django API
   useEffect(() => {
-    axios.get('http://localhost:8000/api/hello/')
-      .then(response => setDjangoMessage(response.data.message))
-      .catch(error => console.error("Error fetching Django API:", error));
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(import.meta.env.VITE_API_URL + '/api/hello/');
+        setDjangoMessage(response.data.message);
+      } catch (err) {
+        setError(err.message);
+        console.error("API Error:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   return (
     <>
       <div>
-        <a href="https://vite.dev" target="_blank">
+        <a href="https://vite.dev" target="_blank" rel="noopener noreferrer">
           <img src={viteLogo} className="logo" alt="Vite logo" />
         </a>
-        <a href="https://react.dev" target="_blank">
+        <a href="https://react.dev" target="_blank" rel="noopener noreferrer">
           <img src={reactLogo} className="logo react" alt="React logo" />
         </a>
       </div>
@@ -34,9 +46,17 @@ function App() {
           Edit <code>src/App.jsx</code> and save to test HMR
         </p>
         
-        {/* Display Django API response */}
+        {/* API Response Section */}
         <div style={{ marginTop: '20px', color: '#646cff' }}>
-          <strong>Django API says:</strong> {djangoMessage || "Loading..."}
+          {isLoading ? (
+            <p>Loading Django API...</p>
+          ) : error ? (
+            <p style={{ color: 'red' }}>Error: {error}</p>
+          ) : (
+            <>
+              <strong>Django API says:</strong> {djangoMessage}
+            </>
+          )}
         </div>
       </div>
       <p className="read-the-docs">
