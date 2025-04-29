@@ -54,8 +54,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# CORS (for React)  
-CORS_ALLOWED_ORIGINS = ["http://localhost:3000"] 
+# CORS (Allow Vite on port 5173)
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+] 
 
 ROOT_URLCONF = 'core.urls'
 
