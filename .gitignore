@@ -1,0 +1,17 @@
+# Python
+venv/              # Virtual environment
+__pycache__/       # Python cache
+*.pyc              # Compiled Python files
+*.pyo
+*.pyd
+db.sqlite3         # Django SQLite database
+.env               # Environment variables
+
+# Node.js (React/Vite)
+node_modules/      # Frontend dependencies
+.DS_Store         # macOS metadata
+dist/             # Vite build folder
+
+# IDE/Editor
+.vscode/
+.idea/
