@@ -5,10 +5,6 @@ from .models import Property, PropertyImage
 from apps.users.models import User
 from .serializer import PropertySerializer, PropertyImageSerializer, UserSerializer
 
-@api_view(['GET'])  
-def hello_world(request):  
-    return Response({"message": "Django API is working!"})  
-
 @api_view(['GET'])
 def get_properties(request):  
     properties = Property.objects.all()  
