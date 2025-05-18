@@ -1,7 +1,7 @@
 from django.urls import path  
-from .views import get_properties, create_property
+from .views import get_properties, property_detail
 
 urlpatterns = [  
     path('properties/', get_properties),
-    path('properties/create/', create_property, name='create_property'),
+    path('properties/<int:pk>/', property_detail),
 ]
