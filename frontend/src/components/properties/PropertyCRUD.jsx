@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import PropertyForm from './PropertyForm';
-import './PropertyStyles.css';
+import './styles/PropertyStyles.css';
 
 function PropertyCRUD() {
   const [properties, setProperties] = useState([]);

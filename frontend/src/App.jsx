@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import PropertyCRUD from './PropertyCRUD';
+import PropertyCRUD from './components/properties/PropertyCRUD';
 import './App.css';
 
 function App() {
