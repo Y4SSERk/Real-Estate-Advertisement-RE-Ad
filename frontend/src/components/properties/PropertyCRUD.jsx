@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import PropertyForm from './PropertyForm';
 import './styles/PropertyStyles.css';
 
-function PropertyCRUD() {
+function PropertyCRUD({ showFormDirectly = false }) {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showForm, setShowForm] = useState(false);
+  const [showForm, setShowForm] = useState(showFormDirectly);
   const [propertyToEdit, setPropertyToEdit] = useState(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState(null);
 

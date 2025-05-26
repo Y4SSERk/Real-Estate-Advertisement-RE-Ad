@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './PropertyStyles.css';
 
 function PropertyForm({ propertyToEdit, onFormSubmit, onCancel }) {
+  const navigate = useNavigate();
   // Initialize form state with default values or values from propertyToEdit
   const [formData, setFormData] = useState({
     title: '',
@@ -246,9 +248,16 @@ function PropertyForm({ propertyToEdit, onFormSubmit, onCancel }) {
       {error && <div className="error-message">{error}</div>}
       {success && <div className="success-message">Property {propertyToEdit ? 'updated' : 'created'} successfully!</div>}
       
+      <div className="form-progress">
+        <div className="progress-step active">1. Basic Info</div>
+        <div className="progress-step">2. Property Details</div>
+        <div className="progress-step">3. Location</div>
+        <div className="progress-step">4. Images</div>
+      </div>
+      
       <form onSubmit={handleSubmit} className="property-form">
         <div className="form-section">
-          <h3>Basic Information</h3>
+          <h3><i className="fas fa-info-circle"></i> Basic Information</h3>
           
           <div className="form-group">
             <label htmlFor="title">Title*</label>
@@ -290,7 +299,7 @@ function PropertyForm({ propertyToEdit, onFormSubmit, onCancel }) {
         </div>
         
         <div className="form-section">
-          <h3>Property Details</h3>
+          <h3><i className="fas fa-home"></i> Property Details</h3>
           
           <div className="form-group">
             <label htmlFor="surface_area">Surface Area (m²)*</label>
@@ -393,7 +402,7 @@ function PropertyForm({ propertyToEdit, onFormSubmit, onCancel }) {
         </div>
         
         <div className="form-section">
-          <h3>Location Information</h3>
+          <h3><i className="fas fa-map-marker-alt"></i> Location Information</h3>
           
           <div className="form-group">
             <label htmlFor="city">City*</label>
@@ -466,19 +475,26 @@ function PropertyForm({ propertyToEdit, onFormSubmit, onCancel }) {
         </div>
         
         <div className="form-section">
-          <h3>Images</h3>
+          <h3><i className="fas fa-images"></i> Images</h3>
           
           <div className="form-group">
             <label htmlFor="images">Upload Images</label>
-            <input
-              type="file"
-              id="images"
-              name="images"
-              onChange={handleImageChange}
-              multiple
-              accept="image/jpeg,image/png,image/gif,image/webp"
-            />
-            <small className="form-text">Supported formats: JPEG, PNG, GIF, WEBP</small>
+            <div className="file-upload-container">
+              <div className="file-upload-box">
+                <i className="fas fa-cloud-upload-alt"></i>
+                <p>Drag & drop images here or click to browse</p>
+                <small>Supported formats: JPEG, PNG, GIF, WEBP (Max 5MB per file)</small>
+                <input
+                  type="file"
+                  id="images"
+                  name="images"
+                  onChange={handleImageChange}
+                  multiple
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  className="file-input"
+                />
+              </div>
+            </div>
           </div>
           
           {images.length > 0 && (
@@ -518,7 +534,7 @@ function PropertyForm({ propertyToEdit, onFormSubmit, onCancel }) {
               className="cancel-btn"
               disabled={loading}
             >
-              Cancel
+              {loading ? 'Please wait...' : 'Cancel'}
             </button>
           )}
           
@@ -527,7 +543,22 @@ function PropertyForm({ propertyToEdit, onFormSubmit, onCancel }) {
             className="submit-btn"
             disabled={loading}
           >
-            {loading ? 'Submitting...' : propertyToEdit ? 'Update Property' : 'Create Property'}
+            {loading ? (
+              <>
+                <i className="fas fa-spinner fa-spin"></i> 
+                Submitting...
+              </>
+            ) : propertyToEdit ? (
+              <>
+                <i className="fas fa-save"></i>
+                Update Property
+              </>
+            ) : (
+              <>
+                <i className="fas fa-plus-circle"></i>
+                Create Property
+              </>
+            )}
           </button>
         </div>
       </form>

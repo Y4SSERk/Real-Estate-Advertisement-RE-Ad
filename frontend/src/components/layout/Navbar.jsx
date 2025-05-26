@@ -55,11 +55,6 @@ function Navbar() {
               Search
             </Link>
           </li>
-          <li className="nav-item">
-            <Link to="/contact" className="nav-link" onClick={() => setIsMenuOpen(false)}>
-              Contact
-            </Link>
-          </li>
           
           {user ? (
             <>
@@ -70,11 +65,9 @@ function Navbar() {
               </li>
               <li className="nav-item dropdown">
                 <button className="nav-link dropdown-toggle" onClick={toggleDropdown}>
-                  <img 
-                    src={user.profileImage || 'https://via.placeholder.com/30'} 
-                    alt="Profile" 
-                    className="profile-icon"
-                  />
+                  <div className="profile-icon">
+                    <i className="fas fa-user"></i>
+                  </div>
                   <span className="user-name">{user.name}</span>
                   <i className={`fas fa-chevron-${dropdownOpen ? 'up' : 'down'}`}></i>
                 </button>

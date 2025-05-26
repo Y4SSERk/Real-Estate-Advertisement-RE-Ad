@@ -4,7 +4,6 @@ import Footer from './components/layout/Footer.jsx';
 import HomePage from './pages/HomePage.jsx';
 import PropertiesListPage from './pages/PropertiesListPage.jsx';
 import PropertyDetailsPage from './pages/PropertyDetailsPage.jsx';
-import ContactPage from './pages/ContactPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
 import MyPropertiesPage from './pages/MyPropertiesPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
@@ -22,10 +21,9 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/search" element={<PropertiesListPage />} />
             <Route path="/properties/:id" element={<PropertyDetailsPage />} />
-            <Route path="/contact" element={<ContactPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/my-properties" element={<MyPropertiesPage />} />
-            <Route path="/add-property" element={<PropertyCRUD />} />
+            <Route path="/add-property" element={<PropertyCRUD showFormDirectly={true} />} />
             <Route path="/edit-property/:id" element={<PropertyCRUD />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './PropertiesListPage.css';
 
@@ -21,8 +21,12 @@ function PropertiesListPage() {
     maxPrice: queryParams.get('maxPrice') || '',
     bedrooms: queryParams.get('bedrooms') || '',
     bathrooms: queryParams.get('bathrooms') || '',
-    city: queryParams.get('city') || ''
+    city: queryParams.get('city') || '',
+    searchTerm: queryParams.get('searchTerm') || ''
   });
+  
+  // Search input reference for focus
+  const searchInputRef = useRef(null);
   
   // Sort state
   const [sortOption, setSortOption] = useState(queryParams.get('sort') || 'newest');
@@ -37,7 +41,14 @@ function PropertiesListPage() {
     const fetchProperties = async () => {
       setLoading(true);
       try {
-        const response = await fetch('http://127.0.0.1:8000/api/properties/');
+        // Get query parameters from URL
+        const params = new URLSearchParams(location.search);
+        let apiUrl = 'http://127.0.0.1:8000/api/properties/';
+        
+        // We'll handle filtering on the frontend for now, but in a real app
+        // you could pass these parameters to the backend API
+        
+        const response = await fetch(apiUrl);
         if (!response.ok) {
           throw new Error('Failed to fetch properties');
         }
@@ -52,7 +63,7 @@ function PropertiesListPage() {
     };
     
     fetchProperties();
-  }, []);
+  }, [location.search]);
   
   // Apply filters
   const handleFilterChange = (e) => {
@@ -74,9 +85,16 @@ function PropertiesListPage() {
     if (filters.bedrooms) params.set('bedrooms', filters.bedrooms);
     if (filters.bathrooms) params.set('bathrooms', filters.bathrooms);
     if (filters.city) params.set('city', filters.city);
+    if (filters.searchTerm) params.set('searchTerm', filters.searchTerm);
     params.set('sort', sortOption);
     
-    navigate(`/properties?${params.toString()}`);
+    navigate(`/search?${params.toString()}`);
+  };
+  
+  // Handle search submit
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    applyFilters();
   };
   
   // Reset filters
@@ -88,10 +106,11 @@ function PropertiesListPage() {
       maxPrice: '',
       bedrooms: '',
       bathrooms: '',
-      city: ''
+      city: '',
+      searchTerm: ''
     });
     setSortOption('newest');
-    navigate('/properties');
+    navigate('/search');
   };
   
   // Format price as currency
@@ -106,6 +125,17 @@ function PropertiesListPage() {
   // Filter and sort properties
   const getFilteredProperties = () => {
     let filtered = [...properties];
+    
+    // Apply search term filter
+    if (filters.searchTerm) {
+      const searchLower = filters.searchTerm.toLowerCase();
+      filtered = filtered.filter(property => 
+        property.title.toLowerCase().includes(searchLower) ||
+        property.description.toLowerCase().includes(searchLower) ||
+        property.city.toLowerCase().includes(searchLower) ||
+        property.address.toLowerCase().includes(searchLower)
+      );
+    }
     
     // Apply filters
     if (filters.status) {
@@ -173,10 +203,26 @@ function PropertiesListPage() {
   return (
     <div className="properties-list-page">
       <div className="container">
-        {/* Page Header */}
+        {/* Page Header with Search Bar */}
         <div className="page-header">
           <h1>Browse Properties</h1>
           <p>Find your dream property from our extensive listings</p>
+          
+          <form className="search-form" onSubmit={handleSearchSubmit}>
+            <div className="search-container">
+              <input
+                type="text"
+                ref={searchInputRef}
+                placeholder="Search by location, property name, or keywords..."
+                value={filters.searchTerm}
+                onChange={(e) => setFilters({...filters, searchTerm: e.target.value})}
+                className="search-input"
+              />
+              <button type="submit" className="search-button">
+                <i className="fas fa-search"></i>
+              </button>
+            </div>
+          </form>
         </div>
 
         <div className="properties-container">
@@ -185,7 +231,7 @@ function PropertiesListPage() {
             <i className="fas fa-filter"></i> {showFilters ? 'Hide Filters' : 'Show Filters'}
           </button>
           
-          <div className="properties-grid">
+          <div className="properties-layout">
             {/* Filters Sidebar */}
             {showFilters && (
               <div className="filters-sidebar">
@@ -216,11 +262,25 @@ function PropertiesListPage() {
                     >
                       <option value="">All Types</option>
                       <option value="apartment">Apartment</option>
+                      <option value="studio">Studio</option>
+                      <option value="duplex">Duplex</option>
+                      <option value="triplex">Triplex</option>
+                      <option value="penthouse">Penthouse</option>
                       <option value="house">House</option>
                       <option value="villa">Villa</option>
-                      <option value="land">Land</option>
-                      <option value="commercial">Commercial</option>
+                      <option value="riad">Riad</option>
+                      <option value="urban_land">Urban Land</option>
+                      <option value="agricultural_land">Agricultural Land</option>
+                      <option value="farm_ranch">Farm / Ranch</option>
                       <option value="office">Office</option>
+                      <option value="shop">Shop / Commercial Space</option>
+                      <option value="warehouse">Warehouse / Storage</option>
+                      <option value="factory">Factory</option>
+                      <option value="restaurant">Restaurant / Café</option>
+                      <option value="hotel">Hotel / Guesthouse</option>
+                      <option value="building">Building</option>
+                      <option value="showroom">Showroom</option>
+                      <option value="parking">Parking / Garage</option>
                     </select>
                   </div>
                   

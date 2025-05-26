@@ -10,6 +10,13 @@ function MyPropertiesPage() {
   const [user, setUser] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [stats, setStats] = useState({
+    total: 0,
+    forSale: 0,
+    forRent: 0,
+    sold: 0,
+    rented: 0
+  });
 
   useEffect(() => {
     // Check if user is logged in
@@ -42,6 +49,17 @@ function MyPropertiesPage() {
       
       const data = await response.json();
       setProperties(data);
+      
+      // Calculate property statistics
+      const stats = {
+        total: data.length,
+        forSale: data.filter(p => p.status === 'for_sale').length,
+        forRent: data.filter(p => p.status === 'for_rent').length,
+        sold: data.filter(p => p.status === 'sold').length,
+        rented: data.filter(p => p.status === 'rented').length
+      };
+      setStats(stats);
+      
       setError(null);
     } catch (error) {
       console.error('Error fetching properties:', error);
@@ -58,13 +76,39 @@ function MyPropertiesPage() {
 
   const confirmDelete = async () => {
     try {
-      // In a real app, you would call your API to delete the property
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await fetch(`http://localhost:8000/api/properties/${deleteId}/`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${JSON.parse(localStorage.getItem('user')).token}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
       
       // Update the UI by removing the deleted property
-      setProperties(prevProperties => 
-        prevProperties.filter(property => property.id !== deleteId)
-      );
+      setProperties(prevProperties => {
+        const updatedProperties = prevProperties.filter(property => property.id !== deleteId);
+        
+        // Update stats
+        const deletedProperty = prevProperties.find(property => property.id === deleteId);
+        if (deletedProperty) {
+          setStats(prev => ({
+            ...prev,
+            total: prev.total - 1,
+            [deletedProperty.status === 'for_sale' ? 'forSale' : 
+              deletedProperty.status === 'for_rent' ? 'forRent' : 
+              deletedProperty.status === 'sold' ? 'sold' : 'rented']: 
+              prev[deletedProperty.status === 'for_sale' ? 'forSale' : 
+                deletedProperty.status === 'for_rent' ? 'forRent' : 
+                deletedProperty.status === 'sold' ? 'sold' : 'rented'] - 1
+          }));
+        }
+        
+        return updatedProperties;
+      });
       
       setShowDeleteModal(false);
       setDeleteId(null);
@@ -88,6 +132,16 @@ function MyPropertiesPage() {
     }).format(price);
   };
 
+  // Get property status label
+  const getStatusLabel = (status) => {
+    return status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
+  
+  // Get property type label
+  const getPropertyTypeLabel = (type) => {
+    return type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
+
   return (
     <div className="my-properties-page">
       <div className="container">
@@ -95,6 +149,47 @@ function MyPropertiesPage() {
           <h1>My Properties</h1>
           <p>Manage your real estate listings</p>
         </div>
+        
+        {!loading && !error && properties.length > 0 && (
+          <div className="property-stats">
+            <div className="stat-card total">
+              <div className="stat-icon">
+                <i className="fas fa-home"></i>
+              </div>
+              <div className="stat-info">
+                <h3>{stats.total}</h3>
+                <p>Total Properties</p>
+              </div>
+            </div>
+            <div className="stat-card for-sale">
+              <div className="stat-icon">
+                <i className="fas fa-tag"></i>
+              </div>
+              <div className="stat-info">
+                <h3>{stats.forSale}</h3>
+                <p>For Sale</p>
+              </div>
+            </div>
+            <div className="stat-card for-rent">
+              <div className="stat-icon">
+                <i className="fas fa-key"></i>
+              </div>
+              <div className="stat-info">
+                <h3>{stats.forRent}</h3>
+                <p>For Rent</p>
+              </div>
+            </div>
+            <div className="stat-card sold">
+              <div className="stat-icon">
+                <i className="fas fa-check-circle"></i>
+              </div>
+              <div className="stat-info">
+                <h3>{stats.sold + stats.rented}</h3>
+                <p>Sold/Rented</p>
+              </div>
+            </div>
+          </div>
+        )}
         
         <div className="my-properties-actions">
           <Link to="/add-property" className="btn btn-primary">
@@ -121,80 +216,87 @@ function MyPropertiesPage() {
             </div>
           </div>
         ) : (
-          <div className="properties-table-container">
-            <table className="properties-table">
-              <thead>
-                <tr>
-                  <th>Property</th>
-                  <th>Status</th>
-                  <th>Price</th>
-                  <th>Views</th>
-                  <th>Inquiries</th>
-                  <th>Date Added</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {properties.map(property => (
-                  <tr key={property.id}>
-                    <td className="property-info">
-                      <div className="property-thumbnail">
-                        {property.images && property.images.length > 0 ? (
-                          <img src={property.images[0].image} alt={property.title} />
-                        ) : (
-                          <div className="no-image">No Image</div>
-                        )}
-                      </div>
-                      <div className="property-details">
-                        <h3>{property.title}</h3>
-                        <p className="property-location">
-                          <i className="fas fa-map-marker-alt"></i> {property.city}, {property.address}
-                        </p>
-                        <div className="property-specs">
-                          <span><i className="fas fa-ruler-combined"></i> {property.surface_area} m²</span>
-                          {property.bedrooms > 0 && (
-                            <span><i className="fas fa-bed"></i> {property.bedrooms}</span>
-                          )}
-                          {property.bathrooms > 0 && (
-                            <span><i className="fas fa-bath"></i> {property.bathrooms}</span>
-                          )}
+          <div className="properties-grid-container">
+            <div className="properties-grid">
+              {properties.map(property => (
+                <div key={property.id} className="property-card">
+                  <div className="property-card-header">
+                    <div className="property-image">
+                      {property.images && property.images.length > 0 ? (
+                        <img src={property.images[0].image} alt={property.title} />
+                      ) : (
+                        <div className="no-image">
+                          <i className="fas fa-home"></i>
+                          <span>No Image</span>
                         </div>
-                      </div>
-                    </td>
-                    <td>
-                      <span className={`status-badge ${property.status}`}>
-                        {property.status.replace('_', ' ')}
-                      </span>
-                    </td>
-                    <td className="price">{formatPrice(property.price)}</td>
-                    <td className="views">
-                      <i className="fas fa-eye"></i> {property.views}
-                    </td>
-                    <td className="inquiries">
-                      <i className="fas fa-envelope"></i> {property.inquiries}
-                    </td>
-                    <td className="date">
-                      {new Date(property.created_at).toLocaleDateString()}
-                    </td>
-                    <td className="actions">
-                      <Link to={`/properties/${property.id}`} className="btn-icon" title="View">
+                      )}
+                    </div>
+                    <span className={`property-status ${property.status}`}>
+                      {getStatusLabel(property.status)}
+                    </span>
+                    <div className="property-quick-actions">
+                      <Link to={`/properties/${property.id}`} className="quick-action-btn view" title="View Property">
                         <i className="fas fa-eye"></i>
                       </Link>
-                      <Link to={`/edit-property/${property.id}`} className="btn-icon" title="Edit">
-                        <i className="fas fa-edit"></i>
-                      </Link>
-                      <button 
-                        className="btn-icon delete" 
-                        onClick={() => handleDeleteClick(property.id)}
-                        title="Delete"
-                      >
-                        <i className="fas fa-trash-alt"></i>
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+                  </div>
+                  
+                  <div className="property-card-body">
+                    <h3 className="property-title">{property.title}</h3>
+                    <div className="property-location">
+                      <i className="fas fa-map-marker-alt"></i>
+                      <span>{property.city}, {property.address}</span>
+                    </div>
+                    
+                    <div className="property-price">
+                      {formatPrice(property.price)}
+                    </div>
+                    
+                    <div className="property-features">
+                      <div className="feature">
+                        <i className="fas fa-ruler-combined"></i>
+                        <span>{property.surface_area} m²</span>
+                      </div>
+                      {property.bedrooms > 0 && (
+                        <div className="feature">
+                          <i className="fas fa-bed"></i>
+                          <span>{property.bedrooms} {property.bedrooms === 1 ? 'Bed' : 'Beds'}</span>
+                        </div>
+                      )}
+                      {property.bathrooms > 0 && (
+                        <div className="feature">
+                          <i className="fas fa-bath"></i>
+                          <span>{property.bathrooms} {property.bathrooms === 1 ? 'Bath' : 'Baths'}</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="property-meta">
+                      <div className="property-type">
+                        <i className="fas fa-home"></i>
+                        <span>{getPropertyTypeLabel(property.property_type)}</span>
+                      </div>
+                      <div className="property-date">
+                        <i className="fas fa-calendar-alt"></i>
+                        <span>{new Date(property.created_at).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="property-card-footer">
+                    <Link to={`/edit-property/${property.id}`} className="action-btn edit">
+                      <i className="fas fa-edit"></i> Edit
+                    </Link>
+                    <button 
+                      className="action-btn delete" 
+                      onClick={() => handleDeleteClick(property.id)}
+                    >
+                      <i className="fas fa-trash-alt"></i> Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -210,11 +312,18 @@ function MyPropertiesPage() {
               </button>
             </div>
             <div className="modal-body">
+              <div className="warning-icon">
+                <i className="fas fa-exclamation-triangle"></i>
+              </div>
               <p>Are you sure you want to delete this property? This action cannot be undone.</p>
             </div>
             <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={cancelDelete}>Cancel</button>
-              <button className="btn btn-danger" onClick={confirmDelete}>Delete</button>
+              <button className="btn btn-secondary" onClick={cancelDelete}>
+                <i className="fas fa-times"></i> Cancel
+              </button>
+              <button className="btn btn-danger" onClick={confirmDelete}>
+                <i className="fas fa-trash-alt"></i> Delete
+              </button>
             </div>
           </div>
         </div>

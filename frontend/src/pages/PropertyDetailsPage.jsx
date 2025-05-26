@@ -8,14 +8,7 @@ function PropertyDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeImage, setActiveImage] = useState(0);
-  const [contactFormData, setContactFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    message: ''
-  });
-  const [formSubmitted, setFormSubmitted] = useState(false);
-  const [formError, setFormError] = useState(null);
+
 
   useEffect(() => {
     const fetchPropertyDetails = async () => {
@@ -45,59 +38,7 @@ function PropertyDetailsPage() {
     fetchPropertyDetails();
   }, [id]);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setContactFormData(prevState => ({
-      ...prevState,
-      [name]: value
-    }));
-  };
 
-  const handleContactSubmit = async (e) => {
-    e.preventDefault();
-    
-    // Basic validation
-    if (!contactFormData.name || !contactFormData.email || !contactFormData.message) {
-      setFormError('Please fill in all required fields');
-      return;
-    }
-    
-    try {
-      // In a real app, you would send this data to your backend
-      // const response = await fetch('http://127.0.0.1:8000/api/inquiries/', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify({
-      //     property_id: id,
-      //     ...contactFormData
-      //   }),
-      // });
-      
-      // if (!response.ok) {
-      //   throw new Error('Failed to submit inquiry');
-      // }
-      
-      // For demo purposes, we'll just simulate a successful submission
-      setFormSubmitted(true);
-      setFormError(null);
-      setContactFormData({
-        name: '',
-        email: '',
-        phone: '',
-        message: ''
-      });
-      
-      // Reset form submission status after 5 seconds
-      setTimeout(() => {
-        setFormSubmitted(false);
-      }, 5000);
-    } catch (err) {
-      console.error('Error submitting inquiry:', err);
-      setFormError('Failed to submit your inquiry. Please try again later.');
-    }
-  };
 
   // Format price as currency
   const formatPrice = (price) => {
@@ -160,10 +101,15 @@ function PropertyDetailsPage() {
             <p className="property-address">
               <i className="fas fa-map-marker-alt"></i> {property.city}, {property.address}
             </p>
+            <div className="property-badges">
+              <span className={`property-status status-${property.status}`}>{property.status.replace('_', ' ')}</span>
+              <span className="property-type"><i className="fas fa-home"></i> {property.property_type.replace('_', ' ').charAt(0).toUpperCase() + property.property_type.replace('_', ' ').slice(1)}</span>
+              <span className="property-date"><i className="fas fa-calendar-alt"></i> Listed on {new Date(property.created_at).toLocaleDateString()}</span>
+            </div>
           </div>
           <div className="property-price">
             <h2>{formatPrice(property.price)}</h2>
-            <span className="property-status">{property.status.replace('_', ' ')}</span>
+            {property.status === 'for_rent' && <span className="price-period">/ month</span>}
           </div>
         </div>
         
@@ -180,6 +126,31 @@ function PropertyDetailsPage() {
                 src="https://via.placeholder.com/800x500?text=No+Image+Available" 
                 alt="No image available" 
               />
+            )}
+            <div className="gallery-controls">
+              {property.images && property.images.length > 1 && (
+                <>
+                  <button 
+                    className="gallery-control prev" 
+                    onClick={() => setActiveImage(prev => (prev === 0 ? property.images.length - 1 : prev - 1))}
+                    aria-label="Previous image"
+                  >
+                    <i className="fas fa-chevron-left"></i>
+                  </button>
+                  <button 
+                    className="gallery-control next" 
+                    onClick={() => setActiveImage(prev => (prev === property.images.length - 1 ? 0 : prev + 1))}
+                    aria-label="Next image"
+                  >
+                    <i className="fas fa-chevron-right"></i>
+                  </button>
+                </>
+              )}
+            </div>
+            {property.images && property.images.length > 0 && (
+              <div className="image-counter">
+                {activeImage + 1} / {property.images.length}
+              </div>
             )}
           </div>
           
@@ -209,6 +180,11 @@ function PropertyDetailsPage() {
                 <p>Surface Area</p>
               </div>
               <div className="feature">
+                <i className="fas fa-door-open"></i>
+                <span>{property.rooms}</span>
+                <p>Rooms</p>
+              </div>
+              <div className="feature">
                 <i className="fas fa-bed"></i>
                 <span>{property.bedrooms}</span>
                 <p>Bedrooms</p>
@@ -218,16 +194,13 @@ function PropertyDetailsPage() {
                 <span>{property.bathrooms}</span>
                 <p>Bathrooms</p>
               </div>
-              <div className="feature">
-                <i className="fas fa-warehouse"></i>
-                <span>{property.property_type}</span>
-                <p>Property Type</p>
-              </div>
-              <div className="feature">
-                <i className="fas fa-calendar-alt"></i>
-                <span>{new Date(property.created_at).getFullYear()}</span>
-                <p>Year Built</p>
-              </div>
+              {property.floors > 0 && (
+                <div className="feature">
+                  <i className="fas fa-building"></i>
+                  <span>{property.floors}</span>
+                  <p>Floors</p>
+                </div>
+              )}
             </div>
             
             {/* Description */}
@@ -274,107 +247,97 @@ function PropertyDetailsPage() {
             </div>
             
             {/* Location */}
-            <div className="property-location">
+            <div className="property-location-section">
               <h3>Location</h3>
-              <div className="map-placeholder">
-                <img 
-                  src={`https://maps.googleapis.com/maps/api/staticmap?center=${property.city},Morocco&zoom=14&size=600x300&key=YOUR_API_KEY`} 
-                  alt="Property location map" 
-                />
-                <p className="map-notice">For demonstration purposes only. Replace with actual Google Maps API in production.</p>
+              <div className="location-details">
+                <div className="location-info">
+                  <p><i className="fas fa-map-marker-alt"></i> <strong>Address:</strong> {property.address}</p>
+                  <p><i className="fas fa-city"></i> <strong>City:</strong> {property.city}</p>
+                  <p><i className="fas fa-flag"></i> <strong>Country:</strong> Morocco</p>
+                </div>
+                <div className="map-placeholder">
+                  <img 
+                    src={`https://maps.googleapis.com/maps/api/staticmap?center=${property.city},Morocco&zoom=14&size=600x300&markers=color:red%7C${property.city},Morocco&key=YOUR_API_KEY`} 
+                    alt="Property location map" 
+                  />
+                  <div className="map-overlay">
+                    <button className="btn btn-primary btn-sm">
+                      <i className="fas fa-map-marked-alt"></i> View Full Map
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
           
-          {/* Contact Form */}
+          {/* Property Details Sidebar */}
           <div className="property-sidebar">
-            <div className="contact-form-card">
-              <h3>Interested in this property?</h3>
-              <p>Fill out the form below and we'll get back to you as soon as possible.</p>
+            <div className="property-details-card">
+              <h3>Property Details</h3>
+              <ul className="property-details-list">
+                <li>
+                  <span className="detail-label">Property ID:</span>
+                  <span className="detail-value">{property.id}</span>
+                </li>
+                <li>
+                  <span className="detail-label">Property Type:</span>
+                  <span className="detail-value">{property.property_type.replace('_', ' ')}</span>
+                </li>
+                <li>
+                  <span className="detail-label">Status:</span>
+                  <span className="detail-value">{property.status.replace('_', ' ')}</span>
+                </li>
+                <li>
+                  <span className="detail-label">Surface Area:</span>
+                  <span className="detail-value">{property.surface_area} m²</span>
+                </li>
+                <li>
+                  <span className="detail-label">Bedrooms:</span>
+                  <span className="detail-value">{property.bedrooms}</span>
+                </li>
+                <li>
+                  <span className="detail-label">Bathrooms:</span>
+                  <span className="detail-value">{property.bathrooms}</span>
+                </li>
+                <li>
+                  <span className="detail-label">Rooms:</span>
+                  <span className="detail-value">{property.rooms}</span>
+                </li>
+                <li>
+                  <span className="detail-label">City:</span>
+                  <span className="detail-value">{property.city}</span>
+                </li>
+                <li>
+                  <span className="detail-label">Listed On:</span>
+                  <span className="detail-value">{new Date(property.created_at).toLocaleDateString()}</span>
+                </li>
+              </ul>
               
-              {formSubmitted ? (
-                <div className="form-success">
-                  <i className="fas fa-check-circle"></i>
-                  <p>Thank you! Your inquiry has been submitted successfully.</p>
-                </div>
-              ) : (
-                <form onSubmit={handleContactSubmit}>
-                  {formError && (
-                    <div className="form-error">
-                      <i className="fas fa-exclamation-circle"></i>
-                      <p>{formError}</p>
-                    </div>
-                  )}
-                  
-                  <div className="form-group">
-                    <label htmlFor="name">Name *</label>
-                    <input 
-                      type="text" 
-                      id="name" 
-                      name="name" 
-                      value={contactFormData.name} 
-                      onChange={handleInputChange} 
-                      required 
-                    />
-                  </div>
-                  
-                  <div className="form-group">
-                    <label htmlFor="email">Email *</label>
-                    <input 
-                      type="email" 
-                      id="email" 
-                      name="email" 
-                      value={contactFormData.email} 
-                      onChange={handleInputChange} 
-                      required 
-                    />
-                  </div>
-                  
-                  <div className="form-group">
-                    <label htmlFor="phone">Phone</label>
-                    <input 
-                      type="tel" 
-                      id="phone" 
-                      name="phone" 
-                      value={contactFormData.phone} 
-                      onChange={handleInputChange} 
-                    />
-                  </div>
-                  
-                  <div className="form-group">
-                    <label htmlFor="message">Message *</label>
-                    <textarea 
-                      id="message" 
-                      name="message" 
-                      rows="4" 
-                      value={contactFormData.message} 
-                      onChange={handleInputChange} 
-                      required 
-                    ></textarea>
-                  </div>
-                  
-                  <button type="submit" className="btn btn-primary btn-block">
-                    Send Inquiry
-                  </button>
-                </form>
-              )}
-              
-              <div className="contact-info">
-                <p><i className="fas fa-phone"></i> +212 522 123 456</p>
-                <p><i className="fas fa-envelope"></i> info@realestate.ma</p>
+              <div className="property-actions">
+                <Link to="/search" className="btn btn-primary btn-block">
+                  <i className="fas fa-search"></i> Browse More Properties
+                </Link>
               </div>
             </div>
             
             {/* Agent Info */}
             <div className="agent-card">
-              <h3>Property Agent</h3>
+              <h3>Property Owner</h3>
               <div className="agent-info">
-                <img src="https://via.placeholder.com/100x100" alt="Agent" className="agent-image" />
+                <div className="agent-icon">
+                  <i className="fas fa-user-circle"></i>
+                </div>
                 <div className="agent-details">
-                  <h4>John Doe</h4>
-                  <p>Senior Real Estate Agent</p>
-                  <p><i className="fas fa-phone"></i> +212 522 123 456</p>
-                  <p><i className="fas fa-envelope"></i> john@realestate.ma</p>
+                  <h4>{property.user ? property.user.name : 'Property Owner'}</h4>
+                  <p>Real Estate Owner</p>
+                  <div className="agent-contact">
+                    <a href="#" className="btn btn-outline-primary btn-sm">
+                      <i className="fas fa-envelope"></i> Send Message
+                    </a>
+                    <a href="#" className="btn btn-primary btn-sm">
+                      <i className="fas fa-phone"></i> Call
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>
