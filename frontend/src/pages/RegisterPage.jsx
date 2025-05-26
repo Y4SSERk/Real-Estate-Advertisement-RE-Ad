@@ -236,18 +236,7 @@ function RegisterPage() {
             </button>
           </form>
           
-          <div className="auth-divider">
-            <span>OR</span>
-          </div>
-          
-          <div className="social-login">
-            <button className="btn btn-social btn-google">
-              <i className="fab fa-google"></i> Sign up with Google
-            </button>
-            <button className="btn btn-social btn-facebook">
-              <i className="fab fa-facebook-f"></i> Sign up with Facebook
-            </button>
-          </div>
+          {/* Social login buttons removed */}
           
           <div className="auth-footer">
             <p>Already have an account? <Link to="/login">Sign in</Link></p>

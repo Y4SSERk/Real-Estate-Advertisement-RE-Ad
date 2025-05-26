@@ -212,81 +212,10 @@ function PropertyDetailsPage() {
               <p>{property.description}</p>
             </div>
             
-            {/* Amenities */}
-            <div className="property-amenities">
-              <h3>Amenities</h3>
-              <ul className="amenities-list">
-                {property.has_parking && (
-                  <li><i className="fas fa-parking"></i> Parking</li>
-                )}
-                {property.has_garden && (
-                  <li><i className="fas fa-leaf"></i> Garden</li>
-                )}
-                {property.has_pool && (
-                  <li><i className="fas fa-swimming-pool"></i> Swimming Pool</li>
-                )}
-                {property.has_balcony && (
-                  <li><i className="fas fa-door-open"></i> Balcony</li>
-                )}
-                {property.has_garage && (
-                  <li><i className="fas fa-warehouse"></i> Garage</li>
-                )}
-                {property.has_elevator && (
-                  <li><i className="fas fa-arrow-alt-circle-up"></i> Elevator</li>
-                )}
-                {property.has_security && (
-                  <li><i className="fas fa-shield-alt"></i> Security</li>
-                )}
-                {property.has_air_conditioning && (
-                  <li><i className="fas fa-snowflake"></i> Air Conditioning</li>
-                )}
-                {property.has_heating && (
-                  <li><i className="fas fa-temperature-high"></i> Heating</li>
-                )}
-                {property.has_furnished && (
-                  <li><i className="fas fa-couch"></i> Furnished</li>
-                )}
-              </ul>
-            </div>
+            {/* Description section end */}
             
-            {/* Amenities and Location Card */}
-            <div className="amenities-location-card">
-              <div className="card-section">
-                <h3>Amenities</h3>
-                <ul className="amenities-list">
-                  {property.has_parking && (
-                    <li><i className="fas fa-parking"></i> Parking</li>
-                  )}
-                  {property.has_garden && (
-                    <li><i className="fas fa-leaf"></i> Garden</li>
-                  )}
-                  {property.has_pool && (
-                    <li><i className="fas fa-swimming-pool"></i> Swimming Pool</li>
-                  )}
-                  {property.has_balcony && (
-                    <li><i className="fas fa-door-open"></i> Balcony</li>
-                  )}
-                  {property.has_garage && (
-                    <li><i className="fas fa-warehouse"></i> Garage</li>
-                  )}
-                  {property.has_elevator && (
-                    <li><i className="fas fa-arrow-alt-circle-up"></i> Elevator</li>
-                  )}
-                  {property.has_security && (
-                    <li><i className="fas fa-shield-alt"></i> Security</li>
-                  )}
-                  {property.has_air_conditioning && (
-                    <li><i className="fas fa-snowflake"></i> Air Conditioning</li>
-                  )}
-                  {property.has_heating && (
-                    <li><i className="fas fa-temperature-high"></i> Heating</li>
-                  )}
-                  {property.has_furnished && (
-                    <li><i className="fas fa-couch"></i> Furnished</li>
-                  )}
-                </ul>
-              </div>
-              
+            {/* Location Card */}
+            <div className="location-card">
               <div className="card-section">
                 <h3>Location</h3>
                 <div className="location-info">

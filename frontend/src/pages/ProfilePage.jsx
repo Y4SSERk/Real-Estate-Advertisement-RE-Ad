@@ -17,6 +17,16 @@ function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
   const [error, setError] = useState(null);
+  
+  // Password change state
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState(null);
+  const [passwordSuccess, setPasswordSuccess] = useState(null);
   const [stats, setStats] = useState({
     totalProperties: 0,
     activeListings: 0,
@@ -94,8 +104,56 @@ function ProfilePage() {
     }));
   };
 
+  const handlePasswordInputChange = (e) => {
+    const { name, value } = e.target;
+    setPasswordData(prevData => ({
+      ...prevData,
+      [name]: value
+    }));
+  };
+
   const handleEditToggle = () => {
     setIsEditing(!isEditing);
+  };
+  
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    setPasswordLoading(true);
+    setPasswordError(null);
+    setPasswordSuccess(null);
+    
+    // Basic validation
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setPasswordError("Passwords don't match");
+      setPasswordLoading(false);
+      return;
+    }
+    
+    if (passwordData.newPassword.length < 8) {
+      setPasswordError("Password must be at least 8 characters long");
+      setPasswordLoading(false);
+      return;
+    }
+    
+    try {
+      // In a real app, you would send this data to your backend
+      // For demo purposes, we'll simulate a successful password change
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Reset form
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+      
+      setPasswordSuccess("Password changed successfully");
+    } catch (error) {
+      console.error('Error changing password:', error);
+      setPasswordError('Failed to change password. Please try again.');
+    } finally {
+      setPasswordLoading(false);
+    }
   };
 
   const handleSaveProfile = async (e) => {
@@ -206,18 +264,7 @@ function ProfilePage() {
               >
                 <i className="fas fa-home"></i> My Properties
               </button>
-              <button 
-                className={`nav-item ${activeTab === 'favorites' ? 'active' : ''}`}
-                onClick={() => setActiveTab('favorites')}
-              >
-                <i className="fas fa-heart"></i> Favorites
-              </button>
-              <button 
-                className={`nav-item ${activeTab === 'inquiries' ? 'active' : ''}`}
-                onClick={() => setActiveTab('inquiries')}
-              >
-                <i className="fas fa-envelope"></i> Inquiries
-              </button>
+              {/* Removed Favorites and Inquiries buttons */}
               <button 
                 className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`}
                 onClick={() => setActiveTab('settings')}
@@ -346,162 +393,11 @@ function ProfilePage() {
                   </div>
                 )}
                 
-                <div className="activity-section">
-                  <h3>Recent Activity</h3>
-                  <div className="activity-list">
-                    <div className="activity-item">
-                      <div className="activity-icon">
-                        <i className="fas fa-home"></i>
-                      </div>
-                      <div className="activity-details">
-                        <div className="activity-title">Added a new property</div>
-                        <div className="activity-description">Modern Apartment in City Center</div>
-                        <div className="activity-time">2 days ago</div>
-                      </div>
-                    </div>
-                    
-                    <div className="activity-item">
-                      <div className="activity-icon">
-                        <i className="fas fa-comment"></i>
-                      </div>
-                      <div className="activity-details">
-                        <div className="activity-title">Received an inquiry</div>
-                        <div className="activity-description">From Sarah about Luxury Villa with Pool</div>
-                        <div className="activity-time">1 week ago</div>
-                      </div>
-                    </div>
-                    
-                    <div className="activity-item">
-                      <div className="activity-icon">
-                        <i className="fas fa-edit"></i>
-                      </div>
-                      <div className="activity-details">
-                        <div className="activity-title">Updated property</div>
-                        <div className="activity-description">Office Space in Business District</div>
-                        <div className="activity-time">2 weeks ago</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                {/* Recent Activity section removed */}
               </div>
             )}
             
-            {activeTab === 'favorites' && (
-              <div className="favorites-section">
-                <div className="content-header">
-                  <h2>Favorite Properties</h2>
-                </div>
-                
-                <div className="no-content-message">
-                  <i className="fas fa-heart"></i>
-                  <h3>No Favorites Yet</h3>
-                  <p>You haven't added any properties to your favorites yet.</p>
-                  <button className="btn btn-primary" onClick={() => navigate('/search')}>Browse Properties</button>
-                </div>
-              </div>
-            )}
-            
-            {activeTab === 'inquiries' && (
-              <div className="inquiries-section">
-                <div className="content-header">
-                  <h2>My Inquiries</h2>
-                </div>
-                
-                <div className="inquiries-tabs">
-                  <button className="tab-btn active">Received (3)</button>
-                  <button className="tab-btn">Sent (0)</button>
-                </div>
-                
-                <div className="inquiries-list">
-                  <div className="inquiry-item">
-                    <div className="inquiry-header">
-                      <div className="inquiry-property">Luxury Villa with Pool</div>
-                      <div className="inquiry-date">May 15, 2023</div>
-                    </div>
-                    <div className="inquiry-content">
-                      <div className="inquiry-user">
-                        <div className="user-avatar">
-                          <img src="https://via.placeholder.com/40" alt="User" />
-                        </div>
-                        <div className="user-info">
-                          <div className="user-name">Sarah Johnson</div>
-                          <div className="user-email">sarah.j@example.com</div>
-                        </div>
-                      </div>
-                      <div className="inquiry-message">
-                        Hello, I'm interested in this property. Is it still available? I would like to schedule a viewing this weekend if possible.
-                      </div>
-                      <div className="inquiry-actions">
-                        <button className="btn btn-primary">
-                          <i className="fas fa-reply"></i> Reply
-                        </button>
-                        <button className="btn btn-secondary">
-                          <i className="fas fa-archive"></i> Archive
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="inquiry-item">
-                    <div className="inquiry-header">
-                      <div className="inquiry-property">Modern Apartment in City Center</div>
-                      <div className="inquiry-date">May 10, 2023</div>
-                    </div>
-                    <div className="inquiry-content">
-                      <div className="inquiry-user">
-                        <div className="user-avatar">
-                          <img src="https://via.placeholder.com/40" alt="User" />
-                        </div>
-                        <div className="user-info">
-                          <div className="user-name">Michael Brown</div>
-                          <div className="user-email">michael.b@example.com</div>
-                        </div>
-                      </div>
-                      <div className="inquiry-message">
-                        I'm looking for an apartment in this area. What's the earliest move-in date available? Also, is the price negotiable?
-                      </div>
-                      <div className="inquiry-actions">
-                        <button className="btn btn-primary">
-                          <i className="fas fa-reply"></i> Reply
-                        </button>
-                        <button className="btn btn-secondary">
-                          <i className="fas fa-archive"></i> Archive
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="inquiry-item">
-                    <div className="inquiry-header">
-                      <div className="inquiry-property">Office Space in Business District</div>
-                      <div className="inquiry-date">May 5, 2023</div>
-                    </div>
-                    <div className="inquiry-content">
-                      <div className="inquiry-user">
-                        <div className="user-avatar">
-                          <img src="https://via.placeholder.com/40" alt="User" />
-                        </div>
-                        <div className="user-info">
-                          <div className="user-name">David Wilson</div>
-                          <div className="user-email">david.w@example.com</div>
-                        </div>
-                      </div>
-                      <div className="inquiry-message">
-                        Our company is expanding and we're looking for office space. Does this property have high-speed internet and parking facilities?
-                      </div>
-                      <div className="inquiry-actions">
-                        <button className="btn btn-primary">
-                          <i className="fas fa-reply"></i> Reply
-                        </button>
-                        <button className="btn btn-secondary">
-                          <i className="fas fa-archive"></i> Archive
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+            {/* Favorites and Inquiries sections removed */}
             
             {activeTab === 'settings' && (
               <div className="settings-section">
@@ -511,84 +407,70 @@ function ProfilePage() {
                 
                 <div className="settings-group">
                   <h3>Password</h3>
-                  <form className="settings-form">
+                  <form className="settings-form" onSubmit={handlePasswordChange}>
+                    {passwordError && (
+                      <div className="error-message">
+                        <i className="fas fa-exclamation-circle"></i>
+                        <p>{passwordError}</p>
+                      </div>
+                    )}
+                    {passwordSuccess && (
+                      <div className="success-message">
+                        <i className="fas fa-check-circle"></i>
+                        <p>{passwordSuccess}</p>
+                      </div>
+                    )}
                     <div className="form-group">
                       <label htmlFor="currentPassword">Current Password</label>
-                      <input type="password" id="currentPassword" name="currentPassword" />
+                      <input 
+                        type="password" 
+                        id="currentPassword" 
+                        name="currentPassword" 
+                        value={passwordData.currentPassword}
+                        onChange={handlePasswordInputChange}
+                        required
+                      />
                     </div>
                     
                     <div className="form-group">
                       <label htmlFor="newPassword">New Password</label>
-                      <input type="password" id="newPassword" name="newPassword" />
+                      <input 
+                        type="password" 
+                        id="newPassword" 
+                        name="newPassword" 
+                        value={passwordData.newPassword}
+                        onChange={handlePasswordInputChange}
+                        required
+                      />
                     </div>
                     
                     <div className="form-group">
                       <label htmlFor="confirmPassword">Confirm New Password</label>
-                      <input type="password" id="confirmPassword" name="confirmPassword" />
+                      <input 
+                        type="password" 
+                        id="confirmPassword" 
+                        name="confirmPassword" 
+                        value={passwordData.confirmPassword}
+                        onChange={handlePasswordInputChange}
+                        required
+                      />
                     </div>
                     
-                    <button type="submit" className="btn btn-primary">Change Password</button>
+                    <button 
+                      type="submit" 
+                      className="btn btn-primary"
+                      disabled={passwordLoading}
+                    >
+                      {passwordLoading ? (
+                        <>
+                          <i className="fas fa-spinner fa-spin"></i> Updating...
+                        </>
+                      ) : 'Change Password'}
+                    </button>
                   </form>
                 </div>
                 
-                <div className="settings-group">
-                  <h3>Notifications</h3>
-                  <div className="notification-settings">
-                    <div className="notification-option">
-                      <div className="option-label">
-                        <h4>Email Notifications</h4>
-                        <p>Receive emails about inquiries, property updates, and more</p>
-                      </div>
-                      <div className="option-toggle">
-                        <input type="checkbox" id="emailNotifications" checked />
-                        <label htmlFor="emailNotifications"></label>
-                      </div>
-                    </div>
-                    
-                    <div className="notification-option">
-                      <div className="option-label">
-                        <h4>Property Alerts</h4>
-                        <p>Get notified when new properties match your criteria</p>
-                      </div>
-                      <div className="option-toggle">
-                        <input type="checkbox" id="propertyAlerts" checked />
-                        <label htmlFor="propertyAlerts"></label>
-                      </div>
-                    </div>
-                    
-                    <div className="notification-option">
-                      <div className="option-label">
-                        <h4>Marketing Communications</h4>
-                        <p>Receive updates about promotions and news</p>
-                      </div>
-                      <div className="option-toggle">
-                        <input type="checkbox" id="marketingComms" />
-                        <label htmlFor="marketingComms"></label>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="settings-group danger-zone">
-                  <h3>Danger Zone</h3>
-                  <div className="danger-actions">
-                    <div className="danger-action">
-                      <div className="action-info">
-                        <h4>Deactivate Account</h4>
-                        <p>Temporarily disable your account</p>
-                      </div>
-                      <button className="btn btn-outline-danger">Deactivate</button>
-                    </div>
-                    
-                    <div className="danger-action">
-                      <div className="action-info">
-                        <h4>Delete Account</h4>
-                        <p>Permanently delete your account and all your data</p>
-                      </div>
-                      <button className="btn btn-danger">Delete</button>
-                    </div>
-                  </div>
-                </div>
+                {/* Only password change functionality is kept, other settings removed */}
               </div>
             )}
           </div>

@@ -449,8 +449,8 @@
   transform: scale(1.2);
 }
 
-/* Amenities and Location Card */
-.amenities-location-card {
+/* Location Card */
+.location-card {
   background-color: white;
   border-radius: 16px;
   margin-top: 30px;
