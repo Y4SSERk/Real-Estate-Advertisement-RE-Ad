@@ -79,12 +79,27 @@ class PropertySerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         uploaded_images = validated_data.pop('uploaded_images', [])
         
-        # Always use the first user for testing purposes
-        # In a real app, you would get the user from the request
-        validated_data['user'] = User.objects.first()
+        # Get the user from the form data if provided
+        user_id = self.context.get('request').data.get('user_id') if self.context.get('request') else None
+        
+        if user_id:
+            try:
+                # Use the user ID from the form data
+                validated_data['user'] = User.objects.get(id=user_id)
+                print(f"Using user ID from form data: {user_id}")
+            except User.DoesNotExist:
+                print(f"User with ID {user_id} not found")
+        
+        # If user is still not set, try to get from request.user
+        if 'user' not in validated_data:
+            request = self.context.get('request')
+            if request and hasattr(request, 'user') and request.user.is_authenticated:
+                validated_data['user'] = request.user
+                print(f"Using authenticated user: {request.user.username} (ID: {request.user.id})")
         
         # Print validated data for debugging
         print("Creating property with data:", validated_data)
+        print("User for this property:", validated_data.get('user', 'No user provided'))
         
         try:
             property = Property.objects.create(**validated_data)

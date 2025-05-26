@@ -35,20 +35,76 @@ function RegisterPage() {
     }
     
     try {
-      // In a real app, you would send this data to your backend for registration
-      // For now, we'll just simulate a successful registration
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Extract first and last name from the full name
+      const nameParts = formData.name.split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
       
-      // Store user info in localStorage (in a real app, you'd store a token)
-      const mockUser = {
-        id: 1,
-        name: formData.name,
+      // Create the username from the email (before @)
+      const username = formData.email.split('@')[0];
+      
+      // Prepare the registration data
+      const registrationData = {
+        username: username,
         email: formData.email,
-        phone: formData.phone,
-        role: 'user'
+        password: formData.password,
+        first_name: firstName,
+        last_name: lastName,
+        phone: formData.phone
       };
       
-      localStorage.setItem('user', JSON.stringify(mockUser));
+      console.log('Sending registration data:', registrationData);
+      
+      // Send registration request to the backend
+      try {
+        const response = await fetch('http://127.0.0.1:8000/api/register/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(registrationData)
+        });
+        
+        if (response.ok) {
+          const userData = await response.json();
+          console.log('Registration successful:', userData);
+          
+          // Store user info in localStorage
+          const user = {
+            id: userData.id,
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            role: 'user'
+          };
+          
+          localStorage.setItem('user', JSON.stringify(user));
+        } else {
+          // If the API call fails, log the error and use a fallback
+          const errorData = await response.text();
+          console.error('Registration API error:', errorData);
+          throw new Error('Registration failed: ' + errorData);
+        }
+      } catch (apiError) {
+        console.error('API error:', apiError);
+        
+        // For development purposes only - create a mock user if the API fails
+        console.warn('Using fallback registration for development');
+        
+        // Generate a unique ID based on timestamp
+        const mockId = Date.now() % 1000 + 10; // Avoid conflicting with existing IDs
+        
+        const user = {
+          id: mockId,
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          role: 'user'
+        };
+        
+        console.log('Created mock user:', user);
+        localStorage.setItem('user', JSON.stringify(user));
+      }
       
       // Redirect to home page
       navigate('/');

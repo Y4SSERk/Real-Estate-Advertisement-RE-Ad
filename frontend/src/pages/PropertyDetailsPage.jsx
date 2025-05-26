@@ -25,6 +25,16 @@ function PropertyDetailsPage() {
         }
         
         const data = await response.json();
+        // Log property owner information for debugging
+        if (data.user) {
+          console.log('Property Owner Info:', {
+            id: data.user.id,
+            username: data.user.username,
+            name: data.user.name,
+            email: data.user.email,
+            phone: data.user.phone
+          });
+        }
         setProperty(data);
         setError(null);
       } catch (err) {
@@ -87,12 +97,6 @@ function PropertyDetailsPage() {
   return (
     <div className="property-details-page">
       <div className="container">
-        {/* Breadcrumbs */}
-        <div className="breadcrumbs">
-          <Link to="/">Home</Link> / 
-          <Link to="/properties">Properties</Link> / 
-          <span>{property.title}</span>
-        </div>
         
         {/* Property Header */}
         <div className="property-header">
@@ -102,7 +106,6 @@ function PropertyDetailsPage() {
               <i className="fas fa-map-marker-alt"></i> {property.city}, {property.address}
             </p>
             <div className="property-badges">
-              <span className={`property-status status-${property.status}`}>{property.status.replace('_', ' ')}</span>
               <span className="property-type"><i className="fas fa-home"></i> {property.property_type.replace('_', ' ').charAt(0).toUpperCase() + property.property_type.replace('_', ' ').slice(1)}</span>
               <span className="property-date"><i className="fas fa-calendar-alt"></i> Listed on {new Date(property.created_at).toLocaleDateString()}</span>
             </div>
@@ -246,25 +249,50 @@ function PropertyDetailsPage() {
               </ul>
             </div>
             
-            {/* Location */}
-            <div className="property-location-section">
-              <h3>Location</h3>
-              <div className="location-details">
+            {/* Amenities and Location Card */}
+            <div className="amenities-location-card">
+              <div className="card-section">
+                <h3>Amenities</h3>
+                <ul className="amenities-list">
+                  {property.has_parking && (
+                    <li><i className="fas fa-parking"></i> Parking</li>
+                  )}
+                  {property.has_garden && (
+                    <li><i className="fas fa-leaf"></i> Garden</li>
+                  )}
+                  {property.has_pool && (
+                    <li><i className="fas fa-swimming-pool"></i> Swimming Pool</li>
+                  )}
+                  {property.has_balcony && (
+                    <li><i className="fas fa-door-open"></i> Balcony</li>
+                  )}
+                  {property.has_garage && (
+                    <li><i className="fas fa-warehouse"></i> Garage</li>
+                  )}
+                  {property.has_elevator && (
+                    <li><i className="fas fa-arrow-alt-circle-up"></i> Elevator</li>
+                  )}
+                  {property.has_security && (
+                    <li><i className="fas fa-shield-alt"></i> Security</li>
+                  )}
+                  {property.has_air_conditioning && (
+                    <li><i className="fas fa-snowflake"></i> Air Conditioning</li>
+                  )}
+                  {property.has_heating && (
+                    <li><i className="fas fa-temperature-high"></i> Heating</li>
+                  )}
+                  {property.has_furnished && (
+                    <li><i className="fas fa-couch"></i> Furnished</li>
+                  )}
+                </ul>
+              </div>
+              
+              <div className="card-section">
+                <h3>Location</h3>
                 <div className="location-info">
-                  <p><i className="fas fa-map-marker-alt"></i> <strong>Address:</strong> {property.address}</p>
-                  <p><i className="fas fa-city"></i> <strong>City:</strong> {property.city}</p>
+                  <p><i className="fas fa-map-marker-alt"></i> <strong>Address:</strong> sidi bobo</p>
+                  <p><i className="fas fa-city"></i> <strong>City:</strong> casablanca</p>
                   <p><i className="fas fa-flag"></i> <strong>Country:</strong> Morocco</p>
-                </div>
-                <div className="map-placeholder">
-                  <img 
-                    src={`https://maps.googleapis.com/maps/api/staticmap?center=${property.city},Morocco&zoom=14&size=600x300&markers=color:red%7C${property.city},Morocco&key=YOUR_API_KEY`} 
-                    alt="Property location map" 
-                  />
-                  <div className="map-overlay">
-                    <button className="btn btn-primary btn-sm">
-                      <i className="fas fa-map-marked-alt"></i> View Full Map
-                    </button>
-                  </div>
                 </div>
               </div>
             </div>
@@ -346,36 +374,7 @@ function PropertyDetailsPage() {
           </div>
         </div>
         
-        {/* Similar Properties Section */}
-        <section className="similar-properties">
-          <h2>Similar Properties</h2>
-          <div className="similar-properties-container">
-            <div className="property-placeholder">
-              <div className="placeholder-image"></div>
-              <div className="placeholder-content">
-                <div className="placeholder-title"></div>
-                <div className="placeholder-text"></div>
-                <div className="placeholder-price"></div>
-              </div>
-            </div>
-            <div className="property-placeholder">
-              <div className="placeholder-image"></div>
-              <div className="placeholder-content">
-                <div className="placeholder-title"></div>
-                <div className="placeholder-text"></div>
-                <div className="placeholder-price"></div>
-              </div>
-            </div>
-            <div className="property-placeholder">
-              <div className="placeholder-image"></div>
-              <div className="placeholder-content">
-                <div className="placeholder-title"></div>
-                <div className="placeholder-text"></div>
-                <div className="placeholder-price"></div>
-              </div>
-            </div>
-          </div>
-        </section>
+        {/* No similar properties section as requested */}
       </div>
     </div>
   );

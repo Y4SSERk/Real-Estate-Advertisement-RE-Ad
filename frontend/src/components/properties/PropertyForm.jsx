@@ -176,6 +176,13 @@ function PropertyForm({ propertyToEdit, onFormSubmit, onCancel }) {
       images.forEach((image, index) => {
         formDataToSend.append(`uploaded_images[${index}]`, image);
       });
+      
+      // Add current user ID to the form data
+      const loggedInUser = JSON.parse(localStorage.getItem('user'));
+      if (loggedInUser && loggedInUser.id) {
+        formDataToSend.append('user_id', loggedInUser.id);
+        console.log('Adding user_id to form data:', loggedInUser.id);
+      }
 
       // Determine if we're creating a new property or updating an existing one
       const url = propertyToEdit 

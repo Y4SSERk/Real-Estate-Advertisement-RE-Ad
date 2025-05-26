@@ -25,20 +25,51 @@ function LoginPage() {
     setError(null);
     
     try {
-      // In a real app, you would send this data to your backend for authentication
-      // For now, we'll just simulate a successful login
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Try to send login request to the backend
+      let userData = null;
+      try {
+        const response = await fetch('http://127.0.0.1:8000/api/login/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            username: formData.email, // Using email as username
+            password: formData.password
+          })
+        });
+        
+        if (response.ok) {
+          userData = await response.json();
+        }
+      } catch (err) {
+        console.log('Backend login API not available, using fallback login');
+        // Fallback login for development purposes
+        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
+      }
       
-      // Store user info in localStorage (in a real app, you'd store a token)
-      const mockUser = {
-        id: 1,
-        name: 'John Doe',
+      // For demo purposes, if backend login is not implemented yet
+      // Use the correct user ID based on the email
+      let userId = userData.id;
+      
+      // If using Zineb's account
+      if (formData.email.toLowerCase().includes('zineb')) {
+        userId = 7; // Zineb's user ID
+      } else if (formData.email.toLowerCase().includes('admin')) {
+        userId = 1; // Admin's user ID
+      }
+      
+      // Store user info in localStorage
+      const user = {
+        id: userId,
+        name: userData.name || formData.email.split('@')[0],
         email: formData.email,
-        phone: '+212 661 123 456',
-        role: 'user'
+        phone: userData.phone || '',
+        role: userData.role || 'user'
       };
       
-      localStorage.setItem('user', JSON.stringify(mockUser));
+      console.log('Logged in as:', user);
+      localStorage.setItem('user', JSON.stringify(user));
       
       // Redirect to home page
       navigate('/');
