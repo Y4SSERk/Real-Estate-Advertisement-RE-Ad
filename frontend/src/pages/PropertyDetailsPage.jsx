@@ -330,13 +330,15 @@ function PropertyDetailsPage() {
                 <div className="agent-details">
                   <h4>{property.user ? property.user.name : 'Property Owner'}</h4>
                   <p>Real Estate Owner</p>
-                  <div className="agent-contact">
-                    <a href="#" className="btn btn-outline-primary btn-sm">
-                      <i className="fas fa-envelope"></i> Send Message
-                    </a>
-                    <a href="#" className="btn btn-primary btn-sm">
-                      <i className="fas fa-phone"></i> Call
-                    </a>
+                  <div className="agent-contact-info">
+                    <div className="contact-item">
+                      <i className="fas fa-envelope"></i>
+                      <span>{property.user && property.user.email ? property.user.email : 'Email not available'}</span>
+                    </div>
+                    <div className="contact-item">
+                      <i className="fas fa-phone"></i>
+                      <span>{property.user && property.user.phone ? property.user.phone : 'Phone not available'}</span>
+                    </div>
                   </div>
                 </div>
               </div>

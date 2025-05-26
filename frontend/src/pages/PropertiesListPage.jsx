@@ -43,17 +43,33 @@ function PropertiesListPage() {
       try {
         // Get query parameters from URL
         const params = new URLSearchParams(location.search);
-        let apiUrl = 'http://127.0.0.1:8000/api/properties/';
+        let apiUrl = 'http://localhost:8000/api/properties/';
         
-        // We'll handle filtering on the frontend for now, but in a real app
-        // you could pass these parameters to the backend API
+        console.log('Fetching properties from:', apiUrl);
         
-        const response = await fetch(apiUrl);
+        // Add CORS headers to the request
+        const requestOptions = {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          mode: 'cors'
+        };
+        
+        const response = await fetch(apiUrl, requestOptions);
+        console.log('Response status:', response.status);
+        
         if (!response.ok) {
-          throw new Error('Failed to fetch properties');
+          const errorText = await response.text();
+          console.error('API error response:', errorText);
+          throw new Error(`Failed to fetch properties: ${response.status} ${response.statusText}`);
         }
+        
         const data = await response.json();
+        console.log('Properties loaded:', data.length);
         setProperties(data);
+        setError(null); // Clear any previous errors
       } catch (err) {
         console.error('Error fetching properties:', err);
         setError('Failed to load properties. Please try again later.');
@@ -376,8 +392,9 @@ function PropertiesListPage() {
                 </div>
                 
                 <div className="sort-options">
-                  <label>Sort by:</label>
+                  <label><i className="fas fa-sort"></i> Sort by:</label>
                   <select 
+                    className="sort-select"
                     value={sortOption} 
                     onChange={(e) => setSortOption(e.target.value)}
                   >
@@ -406,28 +423,76 @@ function PropertiesListPage() {
               ) : (
                 <div className="properties-grid">
                   {filteredProperties.map(property => (
-                    <Link to={`/properties/${property.id}`} key={property.id} className="property-card">
-                      <div className="property-image">
-                        {property.images && property.images.length > 0 ? (
-                          <img src={property.images[0].image} alt={property.title} />
-                        ) : (
-                          <img src="https://via.placeholder.com/300x200?text=No+Image" alt="No image available" />
-                        )}
-                        <div className="property-status">{property.status.replace('_', ' ')}</div>
-                      </div>
-                      
-                      <div className="property-content">
-                        <h3>{property.title}</h3>
-                        <p className="property-location">{property.city}, {property.address}</p>
-                        <p className="property-price">{formatPrice(property.price)}</p>
-                        
-                        <div className="property-features">
-                          <span><i className="fas fa-ruler-combined"></i> {property.surface_area} m²</span>
-                          <span><i className="fas fa-bed"></i> {property.bedrooms} bed</span>
-                          <span><i className="fas fa-bath"></i> {property.bathrooms} bath</span>
+                    <div key={property.id} className="property-card">
+                      <div className="property-card-header">
+                        <div className="property-image">
+                          {property.images && property.images.length > 0 ? (
+                            <img src={property.images[0].image} alt={property.title} />
+                          ) : (
+                            <div className="no-image">
+                              <i className="fas fa-home"></i>
+                              <span>No Image</span>
+                            </div>
+                          )}
+                        </div>
+                        <span className={`property-status ${property.status}`}>
+                          {property.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        </span>
+                        <div className="property-quick-actions">
+                          <Link to={`/properties/${property.id}`} className="quick-action-btn view" title="View Property">
+                            <i className="fas fa-eye"></i>
+                          </Link>
                         </div>
                       </div>
-                    </Link>
+                      
+                      <div className="property-card-body">
+                        <h3 className="property-title">{property.title}</h3>
+                        <div className="property-location">
+                          <i className="fas fa-map-marker-alt"></i>
+                          <span>{property.city}, {property.address}</span>
+                        </div>
+                        
+                        <div className="property-price">
+                          {formatPrice(property.price)}
+                        </div>
+                        
+                        <div className="property-features">
+                          <div className="feature">
+                            <i className="fas fa-ruler-combined"></i>
+                            <span>{property.surface_area} m²</span>
+                          </div>
+                          {property.bedrooms > 0 && (
+                            <div className="feature">
+                              <i className="fas fa-bed"></i>
+                              <span>{property.bedrooms} {property.bedrooms === 1 ? 'Bed' : 'Beds'}</span>
+                            </div>
+                          )}
+                          {property.bathrooms > 0 && (
+                            <div className="feature">
+                              <i className="fas fa-bath"></i>
+                              <span>{property.bathrooms} {property.bathrooms === 1 ? 'Bath' : 'Baths'}</span>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="property-meta">
+                          <div className="property-type">
+                            <i className="fas fa-home"></i>
+                            <span>{property.property_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+                          </div>
+                          <div className="property-date">
+                            <i className="fas fa-calendar-alt"></i>
+                            <span>{new Date(property.created_at).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="property-card-footer">
+                        <Link to={`/properties/${property.id}`} className="action-btn view">
+                          <i className="fas fa-info-circle"></i> View Details
+                        </Link>
+                      </div>
+                    </div>
                   ))}
                 </div>
               )}
