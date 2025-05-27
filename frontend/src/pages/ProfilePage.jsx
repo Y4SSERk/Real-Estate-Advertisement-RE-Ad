@@ -11,8 +11,7 @@ function ProfilePage() {
     name: '',
     email: '',
     phone: '',
-    bio: '',
-    profileImage: ''
+    bio: ''
   });
   const [isEditing, setIsEditing] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
@@ -50,8 +49,7 @@ function ProfilePage() {
       name: userData.name || '',
       email: userData.email || '',
       phone: userData.phone || '',
-      bio: userData.bio || 'Real estate enthusiast and property owner.',
-      profileImage: userData.profileImage || 'https://via.placeholder.com/150'
+      bio: userData.bio || 'Real estate enthusiast and property owner.'
     });
     
     // Fetch user stats
@@ -171,8 +169,7 @@ function ProfilePage() {
         name: profileData.name,
         email: profileData.email,
         phone: profileData.phone,
-        bio: profileData.bio,
-        profileImage: profileData.profileImage
+        bio: profileData.bio
       };
       
       localStorage.setItem('user', JSON.stringify(updatedUser));
@@ -213,24 +210,8 @@ function ProfilePage() {
         <div className="profile-container">
           {/* Profile Sidebar */}
           <div className="profile-sidebar">
-            <div className="profile-image-container">
-              <img src={profileData.profileImage} alt="Profile" className="profile-image" />
-              {isEditing && (
-                <div className="image-upload">
-                  <label htmlFor="profileImage">
-                    <i className="fas fa-camera"></i>
-                  </label>
-                  <input 
-                    type="text" 
-                    id="profileImage" 
-                    name="profileImage" 
-                    value={profileData.profileImage}
-                    onChange={handleInputChange}
-                    placeholder="Image URL"
-                    className="image-url-input"
-                  />
-                </div>
-              )}
+            <div className="profile-header">
+              <i className="fas fa-user-circle profile-icon"></i>
             </div>
             
             <div className="profile-name">{profileData.name}</div>

@@ -7,10 +7,7 @@
   color: #333333;
   background-color: #ffffff;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* Removed expensive text rendering for better performance */
 
   /* Airbnb-inspired color variables */
   --primary-color: #FF385C;
