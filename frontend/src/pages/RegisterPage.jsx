@@ -1,110 +1,114 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useForm } from '../utils/hooks';
+import { authService } from '../services/api';
+import AuthForm from '../components/auth/AuthForm';
 import './AuthPages.css';
 
 function RegisterPage() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+  
+  // Use our custom form hook
+  const { values, handleChange, setFieldValue } = useForm({
     name: '',
     email: '',
     phone: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    agreeToTerms: false
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prevData => ({
-      ...prevData,
-      [name]: value
-    }));
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setIsSubmitting(true);
     setError(null);
     
     // Basic validation
-    if (formData.password !== formData.confirmPassword) {
+    if (values.password !== values.confirmPassword) {
       setError("Passwords don't match");
-      setLoading(false);
+      setIsSubmitting(false);
+      return;
+    }
+    
+    if (!values.agreeToTerms) {
+      setError("You must agree to the Terms of Service and Privacy Policy");
+      setIsSubmitting(false);
       return;
     }
     
     try {
       // Extract first and last name from the full name
-      const nameParts = formData.name.split(' ');
+      const nameParts = values.name.split(' ');
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || '';
       
       // Create the username from the email (before @)
-      const username = formData.email.split('@')[0];
+      const username = values.email.split('@')[0];
       
       // Prepare the registration data
       const registrationData = {
         username: username,
-        email: formData.email,
-        password: formData.password,
+        email: values.email,
+        password: values.password,
         first_name: firstName,
         last_name: lastName,
-        phone: formData.phone
+        phone: values.phone
       };
       
       console.log('Sending registration data:', registrationData);
       
-      // Send registration request to the backend
+      // Try to use the authService for registration
       try {
-        const response = await fetch('http://127.0.0.1:8000/api/register/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(registrationData)
-        });
+        const userData = await authService.register(registrationData);
         
-        if (response.ok) {
-          const userData = await response.json();
+        if (userData) {
           console.log('Registration successful:', userData);
           
-          // Store user info in localStorage
+          // Try to login with the new credentials
+          await authService.login({
+            username: values.email,
+            password: values.password
+          });
+          
+          // Store user info in localStorage for backward compatibility
           const user = {
-            id: userData.id,
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
+            id: userData.id || Date.now() % 1000 + 10,
+            name: values.name,
+            email: values.email,
+            phone: values.phone,
             role: 'user'
           };
           
           localStorage.setItem('user', JSON.stringify(user));
-        } else {
-          // If the API call fails, log the error and use a fallback
-          const errorData = await response.text();
-          console.error('Registration API error:', errorData);
-          throw new Error('Registration failed: ' + errorData);
+          
+          // Redirect to home page
+          navigate('/');
+          window.location.reload(); // Force reload to update navbar
+          return;
         }
       } catch (apiError) {
         console.error('API error:', apiError);
         
         // For development purposes only - create a mock user if the API fails
         console.warn('Using fallback registration for development');
-        
-        // Generate a unique ID based on timestamp
-        const mockId = Date.now() % 1000 + 10; // Avoid conflicting with existing IDs
-        
-        const user = {
-          id: mockId,
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          role: 'user'
-        };
-        
-        console.log('Created mock user:', user);
-        localStorage.setItem('user', JSON.stringify(user));
       }
+      
+      // Fallback registration for development purposes
+      // Generate a unique ID based on timestamp
+      const mockId = Date.now() % 1000 + 10; // Avoid conflicting with existing IDs
+      
+      const user = {
+        id: mockId,
+        name: values.name,
+        email: values.email,
+        phone: values.phone,
+        role: 'user'
+      };
+      
+      console.log('Created mock user:', user);
+      localStorage.setItem('user', JSON.stringify(user));
       
       // Redirect to home page
       navigate('/');
@@ -113,135 +117,91 @@ function RegisterPage() {
       console.error('Registration error:', error);
       setError('Registration failed. Please try again.');
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
+
+  // Define form fields for the AuthForm component
+  const fields = [
+    {
+      name: 'name',
+      type: 'text',
+      label: 'Full Name',
+      placeholder: 'Enter your full name',
+      value: values.name,
+      onChange: handleChange,
+      icon: 'fa-user',
+      autoComplete: 'name',
+      required: true
+    },
+    {
+      name: 'email',
+      type: 'email',
+      label: 'Email',
+      placeholder: 'Enter your email',
+      value: values.email,
+      onChange: handleChange,
+      icon: 'fa-envelope',
+      autoComplete: 'email',
+      required: true
+    },
+    {
+      name: 'phone',
+      type: 'tel',
+      label: 'Phone Number',
+      placeholder: 'Enter your phone number',
+      value: values.phone,
+      onChange: handleChange,
+      icon: 'fa-phone',
+      autoComplete: 'tel',
+      required: true
+    },
+    {
+      name: 'password',
+      type: 'password',
+      label: 'Password',
+      placeholder: 'Create a password',
+      value: values.password,
+      onChange: handleChange,
+      icon: 'fa-lock',
+      autoComplete: 'new-password',
+      required: true
+    },
+    {
+      name: 'confirmPassword',
+      type: 'password',
+      label: 'Confirm Password',
+      placeholder: 'Confirm your password',
+      value: values.confirmPassword,
+      onChange: handleChange,
+      icon: 'fa-lock',
+      autoComplete: 'new-password',
+      required: true
+    },
+    {
+      name: 'agreeToTerms',
+      type: 'checkbox',
+      label: 'I agree to the Terms of Service and Privacy Policy',
+      value: values.agreeToTerms,
+      onChange: (e) => setFieldValue('agreeToTerms', e.target.checked),
+      required: true
+    }
+  ];
 
   return (
     <div className="auth-page register-page">
       <div className="auth-container">
-        <div className="auth-form-container">
-          <div className="auth-header">
-            <h1>Create an Account</h1>
-            <p>Join us to find your dream property</p>
-          </div>
-          
-          {error && (
-            <div className="auth-error">
-              <i className="fas fa-exclamation-circle"></i>
-              <p>{error}</p>
-            </div>
-          )}
-          
-          <form onSubmit={handleSubmit} className="auth-form">
-            <div className="form-group">
-              <label htmlFor="name">Full Name</label>
-              <div className="input-with-icon">
-                <i className="fas fa-user"></i>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="Enter your full name"
-                  required
-                />
-              </div>
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="email">Email</label>
-              <div className="input-with-icon">
-                <i className="fas fa-envelope"></i>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="Enter your email"
-                  required
-                />
-              </div>
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="phone">Phone Number</label>
-              <div className="input-with-icon">
-                <i className="fas fa-phone"></i>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  placeholder="Enter your phone number"
-                  required
-                />
-              </div>
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="password">Password</label>
-              <div className="input-with-icon">
-                <i className="fas fa-lock"></i>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="Create a password"
-                  required
-                />
-              </div>
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="confirmPassword">Confirm Password</label>
-              <div className="input-with-icon">
-                <i className="fas fa-lock"></i>
-                <input
-                  type="password"
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  placeholder="Confirm your password"
-                  required
-                />
-              </div>
-            </div>
-            
-            <div className="form-options">
-              <div className="terms-agreement">
-                <input type="checkbox" id="terms" required />
-                <label htmlFor="terms">
-                  I agree to the <Link to="/terms">Terms of Service</Link> and <Link to="/privacy">Privacy Policy</Link>
-                </label>
-              </div>
-            </div>
-            
-            <button 
-              type="submit" 
-              className="btn btn-primary btn-block"
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <i className="fas fa-spinner fa-spin"></i> Creating Account...
-                </>
-              ) : 'Create Account'}
-            </button>
-          </form>
-          
-          {/* Social login buttons removed */}
-          
-          <div className="auth-footer">
-            <p>Already have an account? <Link to="/login">Sign in</Link></p>
-          </div>
-        </div>
+        <AuthForm
+          title="Create an Account"
+          buttonText="Create Account"
+          onSubmit={handleSubmit}
+          fields={fields}
+          error={error}
+          isLoading={isSubmitting}
+          redirectText="Already have an account?"
+          redirectLink="/login"
+          redirectLinkText="Sign in"
+        />
         
         <div className="auth-image">
           <div className="overlay"></div>
