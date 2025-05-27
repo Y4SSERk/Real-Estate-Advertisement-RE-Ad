@@ -41,19 +41,27 @@ function ProfilePage() {
       return;
     }
     
-    const userData = JSON.parse(loggedInUser);
-    setUser(userData);
-    
-    // Set initial profile data from user object
-    setProfileData({
-      name: userData.name || '',
-      email: userData.email || '',
-      phone: userData.phone || '',
-      bio: userData.bio || 'Real estate enthusiast and property owner.'
-    });
-    
-    // Fetch user stats
-    fetchUserStats();
+    try {
+      const userData = JSON.parse(loggedInUser);
+      console.log('User data from localStorage:', userData);
+      setUser(userData);
+      
+      // Set initial profile data from user object
+      setProfileData({
+        name: userData.name || '',
+        email: userData.email || '',
+        phone: userData.phone || '',
+        bio: userData.bio || 'Real estate enthusiast and property owner.'
+      });
+      
+      // Fetch user stats
+      fetchUserStats();
+    } catch (error) {
+      console.error('Error parsing user data:', error);
+      // Handle corrupted user data by redirecting to login
+      localStorage.removeItem('user');
+      navigate('/login');
+    }
   }, [navigate]);
 
   const fetchUserStats = async () => {
@@ -63,35 +71,63 @@ function ProfilePage() {
         throw new Error('User not authenticated');
       }
       
-      // Fetch user properties to calculate stats
-      const response = await fetch(`http://localhost:8000/api/properties/?user=${userData.id}`);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+      // Try to fetch from API first
+      try {
+        const response = await fetch(`http://localhost:8000/api/properties/?user=${userData.id}`);
+        
+        if (response.ok) {
+          const properties = await response.json();
+          updateStatsFromProperties(properties);
+          return;
+        }
+      } catch (error) {
+        console.log('API not available, using mock data for stats');
       }
       
-      const properties = await response.json();
-      
-      // Calculate stats from properties data
-      const activeListings = properties.filter(prop => 
-        prop.status === 'for_sale' || prop.status === 'for_rent'
-      ).length;
-      
-      // Sum up views and inquiries (if available in your API)
-      const totalViews = properties.reduce((sum, prop) => sum + (prop.views || 0), 0);
-      const totalInquiries = properties.reduce((sum, prop) => sum + (prop.inquiries || 0), 0);
-      
-      setStats({
-        totalProperties: properties.length,
-        activeListings,
-        totalViews,
-        totalInquiries
-      });
+      // Fallback to mock data if API fails
+      if (window.mockProperties) {
+        // Filter properties by user ID
+        const userProperties = window.mockProperties.filter(
+          prop => prop.user && prop.user.id === userData.id
+        );
+        updateStatsFromProperties(userProperties);
+      } else {
+        // Import mock data dynamically if not available in window
+        import('../services/mockData.js').then(({ mockProperties }) => {
+          // Store in window for future use
+          window.mockProperties = mockProperties;
+          
+          // Filter properties by user ID
+          const userProperties = mockProperties.filter(
+            prop => prop.user && prop.user.id === userData.id
+          );
+          updateStatsFromProperties(userProperties);
+        });
+      }
     } catch (err) {
       console.error('Error fetching user stats:', err);
     } finally {
       setLoading(false);
     }
+  };
+  
+  // Helper function to update stats from properties
+  const updateStatsFromProperties = (properties) => {
+    // Calculate stats from properties data
+    const activeListings = properties.filter(prop => 
+      prop.status === 'for_sale' || prop.status === 'for_rent'
+    ).length;
+    
+    // Sum up views and inquiries
+    const totalViews = properties.reduce((sum, prop) => sum + (prop.views || 0), 0);
+    const totalInquiries = properties.reduce((sum, prop) => sum + (prop.inquiries || 0), 0);
+    
+    setStats({
+      totalProperties: properties.length,
+      activeListings,
+      totalViews,
+      totalInquiries
+    });
   };
 
   const handleInputChange = (e) => {

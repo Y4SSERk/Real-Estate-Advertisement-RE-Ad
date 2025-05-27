@@ -59,60 +59,55 @@ function RegisterPage() {
       
       console.log('Sending registration data:', registrationData);
       
-      // Try to use the authService for registration
+      // Use the authService for registration
       try {
-        const userData = await authService.register(registrationData);
+        const response = await authService.register(registrationData);
         
-        if (userData) {
-          console.log('Registration successful:', userData);
+        if (response && response.user) {
+          console.log('Registration successful:', response);
           
           // Try to login with the new credentials
-          await authService.login({
-            username: values.email,
-            password: values.password
+          const loginResponse = await authService.login({
+            username: registrationData.username,
+            password: registrationData.password
           });
           
-          // Store user info in localStorage for backward compatibility
+          // Store user info in localStorage
           const user = {
-            id: userData.id || Date.now() % 1000 + 10,
-            name: values.name,
-            email: values.email,
-            phone: values.phone,
-            role: 'user'
+            id: response.user.id,
+            name: `${response.user.first_name} ${response.user.last_name}`.trim(),
+            email: response.user.email,
+            phone: response.user.phone || '',
+            role: response.user.role || 'user'
           };
           
           localStorage.setItem('user', JSON.stringify(user));
           
+          // Show success message
+          alert('Registration successful! You are now logged in.');
+          
           // Redirect to home page
           navigate('/');
           window.location.reload(); // Force reload to update navbar
-          return;
+        } else {
+          throw new Error('Registration response missing user data');
         }
-      } catch (apiError) {
-        console.error('API error:', apiError);
+      } catch (error) {
+        console.error('Registration error:', error);
         
-        // For development purposes only - create a mock user if the API fails
-        console.warn('Using fallback registration for development');
+        // Extract error message from API response if available
+        let errorMessage = 'Registration failed. Please try again.';
+        
+        if (error.response && error.response.data) {
+          if (error.response.data.error) {
+            errorMessage = error.response.data.error;
+          } else if (typeof error.response.data === 'string') {
+            errorMessage = error.response.data;
+          }
+        }
+        
+        setError(errorMessage);
       }
-      
-      // Fallback registration for development purposes
-      // Generate a unique ID based on timestamp
-      const mockId = Date.now() % 1000 + 10; // Avoid conflicting with existing IDs
-      
-      const user = {
-        id: mockId,
-        name: values.name,
-        email: values.email,
-        phone: values.phone,
-        role: 'user'
-      };
-      
-      console.log('Created mock user:', user);
-      localStorage.setItem('user', JSON.stringify(user));
-      
-      // Redirect to home page
-      navigate('/');
-      window.location.reload(); // Force reload to update navbar
     } catch (error) {
       console.error('Registration error:', error);
       setError('Registration failed. Please try again.');

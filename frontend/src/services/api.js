@@ -2,7 +2,7 @@ import axios from 'axios';
 import { mockProperties, mockUsers } from './mockData';
 
 // Flag to use mock data when backend is unavailable
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
 
 // Create axios instance with base URL
 const API = axios.create({
@@ -25,28 +25,104 @@ API.interceptors.request.use(
 export const authService = {
   // Login user
   login: async (credentials) => {
-    const response = await API.post('/auth/login/', credentials);
-    if (response.data.token) {
-      localStorage.setItem('token', response.data.token);
+    try {
+      if (USE_MOCK_DATA) {
+        console.log('Using mock data for login');
+        // Find user in mock data
+        const user = mockUsers.find(u => 
+          u.email === credentials.username || 
+          u.username === credentials.username
+        );
+        
+        if (!user) {
+          throw new Error('Invalid credentials');
+        }
+        
+        // Simulate token
+        const token = `mock-token-${Date.now()}`;
+        localStorage.setItem('token', token);
+        
+        return { token, user };
+      }
+      
+      const response = await API.post('/login/', credentials);
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+      }
+      return response.data;
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
     }
-    return response.data;
   },
   
   // Register user
   register: async (userData) => {
-    const response = await API.post('/auth/register/', userData);
-    return response.data;
+    try {
+      if (USE_MOCK_DATA) {
+        console.log('Using mock data for registration');
+        // Create a new mock user
+        const newUser = {
+          id: String(mockUsers.length + 1),
+          username: userData.username || userData.email.split('@')[0],
+          name: userData.name || userData.username,
+          email: userData.email,
+          phone: userData.phone || '',
+          role: 'user',
+          properties: []
+        };
+        
+        // Simulate token
+        const token = `mock-token-${Date.now()}`;
+        localStorage.setItem('token', token);
+        
+        return { token, user: newUser };
+      }
+      
+      const response = await API.post('/register/', userData);
+      return response.data;
+    } catch (error) {
+      console.error('Registration error:', error);
+      throw error;
+    }
   },
   
   // Logout user
   logout: () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
   },
   
   // Get current user profile
   getCurrentUser: async () => {
-    const response = await API.get('/users/me/');
-    return response.data;
+    try {
+      if (USE_MOCK_DATA) {
+        console.log('Using mock data for current user');
+        // Get username from token or localStorage
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+          const userData = JSON.parse(userStr);
+          const user = mockUsers.find(u => 
+            u.email === userData.email || 
+            u.username === userData.username || 
+            u.id === userData.id
+          );
+          
+          if (user) {
+            return user;
+          }
+        }
+        
+        // Default to first user if none found
+        return mockUsers[0];
+      }
+      
+      const response = await API.get('/users/me/');
+      return response.data;
+    } catch (error) {
+      console.error('Error getting current user:', error);
+      throw error;
+    }
   },
   
   // Update user profile

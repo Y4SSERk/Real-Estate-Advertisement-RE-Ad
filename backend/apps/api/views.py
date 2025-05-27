@@ -62,30 +62,60 @@ def register_user(request):
             data = request.data
             User = get_user_model()
             
+            # Validate required fields
+            required_fields = ['username', 'email', 'password']
+            for field in required_fields:
+                if field not in data or not data[field]:
+                    return Response(
+                        {'error': f'{field} is required'}, 
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+            
             # Check if username or email already exists
             if User.objects.filter(username=data['username']).exists():
-                return Response({'error': 'Username already exists'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {'error': 'Username already exists'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             
             if User.objects.filter(email=data['email']).exists():
-                return Response({'error': 'Email already exists'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {'error': 'Email already exists'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             
-            # Create new user
-            user = User.objects.create(
+            # Create new user with create_user method to ensure proper setup
+            user = User.objects.create_user(
                 username=data['username'],
                 email=data['email'],
-                password=make_password(data['password']),  # Hash the password
+                password=data['password'],  # create_user will hash the password automatically
                 first_name=data.get('first_name', ''),
                 last_name=data.get('last_name', ''),
                 phone=data.get('phone', '')
             )
             
+            # Ensure the user is active and saved
+            user.is_active = True
+            user.save()
+            
             # Return user data (excluding password)
             serializer = UserSerializer(user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response({
+                'user': serializer.data,
+                'message': 'User registered successfully'
+            }, status=status.HTTP_201_CREATED)
             
+        except KeyError as e:
+            return Response(
+                {'error': f'Missing required field: {str(e)}'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
         except Exception as e:
             print(f"Error creating user: {e}")
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'error': f'Registration failed: {str(e)}'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 @api_view(['POST'])
 def login_user(request):
@@ -96,21 +126,46 @@ def login_user(request):
             username = data.get('username')
             password = data.get('password')
             
-            # For demo purposes, just return a success response with user data
-            # In a real app, you would verify credentials and generate a token
+            if not username or not password:
+                return Response(
+                    {'error': 'Username and password are required'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Get the user model and authenticate
             User = get_user_model()
             
-            try:
-                user = User.objects.get(username=username)
-                # In a real app, you would check the password here
-                # if not check_password(password, user.password):
-                #     return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-                
+            # Try to authenticate by username
+            from django.contrib.auth import authenticate
+            user = authenticate(username=username, password=password)
+            
+            # If authentication by username fails, try by email
+            if user is None:
+                try:
+                    # Find user by email
+                    email_user = User.objects.get(email=username)
+                    # Try to authenticate with found username
+                    user = authenticate(username=email_user.username, password=password)
+                except User.DoesNotExist:
+                    pass
+            
+            if user is not None:
+                # Authentication successful
                 serializer = UserSerializer(user)
-                return Response(serializer.data)
-            except User.DoesNotExist:
-                return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({
+                    'user': serializer.data,
+                    'message': 'Login successful'
+                })
+            else:
+                # Authentication failed
+                return Response(
+                    {'error': 'Invalid credentials'}, 
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
                 
         except Exception as e:
             print(f"Error logging in: {e}")
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'error': f'Login failed: {str(e)}'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )

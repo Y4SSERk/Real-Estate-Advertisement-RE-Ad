@@ -180,6 +180,7 @@ export const mockUsers = [
     name: 'Yasser Khattabi',
     email: 'yasser@example.com',
     phone: '+212612345678',
+    bio: 'Real estate investor and property developer with over 5 years of experience in the Moroccan market. Specializing in luxury properties and modern apartments.',
     role: 'user',
     properties: ['1', '3', '5']
   },
@@ -189,6 +190,7 @@ export const mockUsers = [
     name: 'Zineb Alaoui',
     email: 'zineb@example.com',
     phone: '+212698765432',
+    bio: 'Interior designer and real estate consultant helping clients find their perfect homes. Passionate about traditional Moroccan architecture and modern design.',
     role: 'user',
     properties: ['2', '4', '6']
   }

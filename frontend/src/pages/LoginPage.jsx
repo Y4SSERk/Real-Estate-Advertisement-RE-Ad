@@ -22,67 +22,32 @@ function LoginPage() {
     setError(null);
     
     try {
-      // Try to use the authService for login
-      try {
-        const userData = await authService.login({
-          username: values.email, // Using email as username
-          password: values.password
-        });
+      // Attempt to login using the authService
+      const response = await authService.login({
+        username: values.email, // Using email as username
+        password: values.password
+      });
+      
+      if (response && response.user) {
+        // Store user info in localStorage
+        const user = {
+          id: response.user.id,
+          name: `${response.user.first_name} ${response.user.last_name}`.trim() || values.email.split('@')[0],
+          email: response.user.email || values.email,
+          phone: response.user.phone || '',
+          bio: 'Real estate enthusiast and property owner.',
+          role: response.user.role || 'user'
+        };
         
-        // If we successfully get a token from the backend, proceed
-        if (userData) {
-          // Get user profile data
-          const userProfile = await authService.getCurrentUser();
-          
-          // Store user info in localStorage (for backward compatibility)
-          const user = {
-            id: userProfile.id,
-            name: userProfile.name || values.email.split('@')[0],
-            email: values.email,
-            phone: userProfile.phone || '',
-            role: userProfile.role || 'user'
-          };
-          
-          console.log('Logged in as:', user);
-          localStorage.setItem('user', JSON.stringify(user));
-          
-          // Redirect to home page
-          navigate('/');
-          window.location.reload(); // Force reload to update navbar
-          return;
-        }
-      } catch (err) {
-        console.log('Backend login API not available, using fallback login');
+        console.log('Logged in as:', user);
+        localStorage.setItem('user', JSON.stringify(user));
+        
+        // Redirect to home page
+        navigate('/');
+        window.location.reload(); // Force reload to update navbar
+      } else {
+        throw new Error('Login failed - invalid response from server');
       }
-      
-      // Fallback login for development purposes
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
-      
-      // For demo purposes, if backend login is not implemented yet
-      let userId = 1; // Default user ID
-      
-      // If using Zineb's account
-      if (values.email.toLowerCase().includes('zineb')) {
-        userId = 7; // Zineb's user ID
-      } else if (values.email.toLowerCase().includes('admin')) {
-        userId = 1; // Admin's user ID
-      }
-      
-      // Store user info in localStorage
-      const user = {
-        id: userId,
-        name: values.email.split('@')[0],
-        email: values.email,
-        phone: '',
-        role: 'user'
-      };
-      
-      console.log('Logged in as (fallback):', user);
-      localStorage.setItem('user', JSON.stringify(user));
-      
-      // Redirect to home page
-      navigate('/');
-      window.location.reload(); // Force reload to update navbar
     } catch (error) {
       console.error('Login error:', error);
       setError('Invalid email or password. Please try again.');
