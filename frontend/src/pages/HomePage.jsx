@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { useFetch } from '../utils/hooks';
 import { formatPrice, capitalizeWords, formatDate } from '../utils/helpers';
 import { propertyService } from '../services/api';
 import PropertyCard from '../components/properties/PropertyCard';
@@ -8,26 +7,41 @@ import LoadingSpinner from '../components/common/LoadingSpinner';
 import ErrorMessage from '../components/common/ErrorMessage';
 import './HomePage.css';
 
+// Memoized PropertyCard to prevent unnecessary re-renders
+const MemoizedPropertyCard = memo(PropertyCard);
+
 function HomePage() {
-  // Use our custom hook to fetch featured properties
-  const { 
-    data: featuredProperties, 
-    loading, 
-    error, 
-    refetch: refetchProperties 
-  } = useFetch(async () => {
+  // Use state instead of useFetch hook for better performance
+  const [featuredProperties, setFeaturedProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  // Memoized fetch function to prevent unnecessary re-renders
+  const fetchProperties = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    
     try {
       const data = await propertyService.getFeaturedProperties();
       // If the API doesn't return featured properties, get the 6 most recent ones
       if (!data || data.length === 0) {
         const allProperties = await propertyService.getProperties();
-        return allProperties.slice(0, 6);
+        setFeaturedProperties(allProperties.slice(0, 6));
+      } else {
+        setFeaturedProperties(data);
       }
-      return data;
     } catch (error) {
-      throw new Error('Failed to load properties. Please try again later.');
+      console.error('Error fetching properties:', error);
+      setError('Failed to load properties. Please try again later.');
+    } finally {
+      setLoading(false);
     }
   }, []);
+  
+  // Fetch properties on component mount
+  useEffect(() => {
+    fetchProperties();
+  }, [fetchProperties]);
 
   return (
     <div className="home-page">
@@ -156,7 +170,10 @@ function HomePage() {
           ) : (
             <div className="featured-properties-grid">
               {featuredProperties && featuredProperties.map(property => (
-                <PropertyCard key={property.id} property={property} />
+                <MemoizedPropertyCard 
+                  key={property.id} 
+                  property={property} 
+                />
               ))}
             </div>
           )}

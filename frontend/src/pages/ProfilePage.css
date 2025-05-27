@@ -20,15 +20,7 @@
   height: fit-content;
 }
 
-.profile-header {
-  margin: 0 auto 1.5rem;
-}
 
-.profile-icon {
-  font-size: 4rem;
-  color: var(--primary-color, #3498db);
-  margin-bottom: 1rem;
-}
 
 .image-upload input {
   display: none;
@@ -47,10 +39,12 @@
 }
 
 .profile-name {
-  font-size: 1.5rem;
-  font-weight: 600;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-top: 1.5rem;
   margin-bottom: 0.5rem;
-  color: var(--text-color);
+  color: var(--primary-color, #3498db);
+  letter-spacing: -0.5px;
 }
 
 .profile-email {

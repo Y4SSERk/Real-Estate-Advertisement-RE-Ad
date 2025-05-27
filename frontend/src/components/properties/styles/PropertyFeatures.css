@@ -26,8 +26,8 @@
 
 .amenities-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 15px;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
   list-style-type: none;
   padding: 0;
   margin: 0;
@@ -36,11 +36,12 @@
 .amenities-list li {
   display: flex;
   align-items: center;
-  padding: 10px 15px;
+  padding: 8px 12px;
   background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+  transition: all 0.2s ease;
+  font-size: 0.8rem;
 }
 
 .amenities-list li:hover {
@@ -49,9 +50,9 @@
 }
 
 .amenities-list li i {
-  margin-right: 10px;
+  margin-right: 8px;
   color: #4CAF50;
-  font-size: 1.1rem;
+  font-size: 0.9rem;
 }
 
 .no-amenities {

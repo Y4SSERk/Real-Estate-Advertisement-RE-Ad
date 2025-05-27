@@ -1,6 +1,38 @@
-import React from 'react';
+import React, { useState, memo } from 'react';
 import { Link } from 'react-router-dom';
 import './styles/PropertyCard.css';
+
+// Lazy loading image component
+const LazyCardImage = memo(({ src, alt }) => {
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+  
+  const handleLoad = () => setLoaded(true);
+  const handleError = () => setError(true);
+  
+  if (error) {
+    return (
+      <div className="no-image">
+        <i className="fas fa-home"></i>
+        <span>No Image</span>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="lazy-card-image">
+      {!loaded && <div className="card-image-placeholder"></div>}
+      <img 
+        src={src} 
+        alt={alt} 
+        loading="lazy" 
+        onLoad={handleLoad} 
+        onError={handleError}
+        style={{ opacity: loaded ? 1 : 0 }}
+      />
+    </div>
+  );
+});
 
 /**
  * PropertyCard component for displaying property information in a card format
@@ -22,7 +54,7 @@ const PropertyCard = ({ property }) => {
       <div className="property-card-header">
         <div className="property-image">
           {property.images && property.images.length > 0 ? (
-            <img src={property.images[0].image} alt={property.title} />
+            <LazyCardImage src={property.images[0].image} alt={property.title} />
           ) : (
             <div className="no-image">
               <i className="fas fa-home"></i>

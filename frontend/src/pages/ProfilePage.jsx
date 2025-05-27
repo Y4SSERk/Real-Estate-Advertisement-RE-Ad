@@ -210,9 +210,7 @@ function ProfilePage() {
         <div className="profile-container">
           {/* Profile Sidebar */}
           <div className="profile-sidebar">
-            <div className="profile-header">
-              <i className="fas fa-user-circle profile-icon"></i>
-            </div>
+
             
             <div className="profile-name">{profileData.name}</div>
             <div className="profile-email">{profileData.email}</div>

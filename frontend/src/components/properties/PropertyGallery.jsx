@@ -1,5 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import './styles/PropertyGallery.css';
+
+// Image placeholder component for lazy loading
+const LazyImage = memo(({ src, alt, onLoad }) => {
+  const [loaded, setLoaded] = useState(false);
+  
+  const handleLoad = useCallback(() => {
+    setLoaded(true);
+    if (onLoad) onLoad();
+  }, [onLoad]);
+  
+  return (
+    <div className={`lazy-image-container ${loaded ? 'loaded' : ''}`}>
+      {!loaded && <div className="image-placeholder"></div>}
+      <img 
+        src={src} 
+        alt={alt} 
+        loading="lazy" 
+        onLoad={handleLoad} 
+        style={{ opacity: loaded ? 1 : 0 }}
+      />
+    </div>
+  );
+});
 
 /**
  * PropertyGallery component for displaying property images in a gallery format
@@ -45,7 +68,10 @@ const PropertyGallery = ({ images }) => {
   return (
     <div className="property-gallery">
       <div className="gallery-main">
-        <img src={activeImage.image} alt="Property" />
+        <LazyImage 
+          src={activeImage.image} 
+          alt="Property" 
+        />
       </div>
       
       {images.length > 1 && (
@@ -56,7 +82,10 @@ const PropertyGallery = ({ images }) => {
               className={`thumbnail ${activeImage.id === img.id ? 'active' : ''}`}
               onClick={() => setActiveImage(img)}
             >
-              <img src={img.image} alt={`Property thumbnail ${index + 1}`} />
+              <LazyImage 
+                src={img.image} 
+                alt={`Property thumbnail ${index + 1}`} 
+              />
             </div>
           ))}
         </div>
