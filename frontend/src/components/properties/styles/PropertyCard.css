@@ -245,17 +245,20 @@
   margin-bottom: var(--spacing-sm, 0.5rem);
   padding-bottom: var(--spacing-sm, 0.5rem);
   border-bottom: 1px solid var(--border-color, #e0e0e0);
+  flex-wrap: nowrap;
+  gap: 8px;
 }
 
 .feature {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   font-size: 0.75rem;
   position: relative;
   padding: var(--spacing-xs, 0.25rem) var(--spacing-xs, 0.25rem);
   border-radius: var(--border-radius-sm, 4px);
   transition: all 0.2s ease;
+  background-color: rgba(240, 240, 240, 0.5);
 }
 
 .property-card:hover .feature {
@@ -263,9 +266,9 @@
 }
 
 .feature i {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   color: var(--primary-color, #3498db);
-  margin-bottom: var(--spacing-xs, 0.25rem);
+  margin-right: var(--spacing-xs, 0.25rem);
   transition: all 0.2s ease;
 }
 
@@ -274,6 +277,7 @@
   transition: all 0.2s ease;
   white-space: nowrap;
   font-size: 0.7rem;
+  font-weight: 500;
 }
 
 .property-meta {

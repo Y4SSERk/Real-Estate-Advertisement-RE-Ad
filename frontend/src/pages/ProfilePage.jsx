@@ -280,12 +280,7 @@ function ProfilePage() {
                 <i className="fas fa-home"></i> My Properties
               </button>
               {/* Removed Favorites and Inquiries buttons */}
-              <button 
-                className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`}
-                onClick={() => setActiveTab('settings')}
-              >
-                <i className="fas fa-cog"></i> Settings
-              </button>
+              {/* Settings button removed */}
               <button 
                 className="nav-item logout"
                 onClick={handleLogout}
@@ -414,80 +409,7 @@ function ProfilePage() {
             
             {/* Favorites and Inquiries sections removed */}
             
-            {activeTab === 'settings' && (
-              <div className="settings-section">
-                <div className="content-header">
-                  <h2>Account Settings</h2>
-                </div>
-                
-                <div className="settings-group">
-                  <h3>Password</h3>
-                  <form className="settings-form" onSubmit={handlePasswordChange}>
-                    {passwordError && (
-                      <div className="error-message">
-                        <i className="fas fa-exclamation-circle"></i>
-                        <p>{passwordError}</p>
-                      </div>
-                    )}
-                    {passwordSuccess && (
-                      <div className="success-message">
-                        <i className="fas fa-check-circle"></i>
-                        <p>{passwordSuccess}</p>
-                      </div>
-                    )}
-                    <div className="form-group">
-                      <label htmlFor="currentPassword">Current Password</label>
-                      <input 
-                        type="password" 
-                        id="currentPassword" 
-                        name="currentPassword" 
-                        value={passwordData.currentPassword}
-                        onChange={handlePasswordInputChange}
-                        required
-                      />
-                    </div>
-                    
-                    <div className="form-group">
-                      <label htmlFor="newPassword">New Password</label>
-                      <input 
-                        type="password" 
-                        id="newPassword" 
-                        name="newPassword" 
-                        value={passwordData.newPassword}
-                        onChange={handlePasswordInputChange}
-                        required
-                      />
-                    </div>
-                    
-                    <div className="form-group">
-                      <label htmlFor="confirmPassword">Confirm New Password</label>
-                      <input 
-                        type="password" 
-                        id="confirmPassword" 
-                        name="confirmPassword" 
-                        value={passwordData.confirmPassword}
-                        onChange={handlePasswordInputChange}
-                        required
-                      />
-                    </div>
-                    
-                    <button 
-                      type="submit" 
-                      className="btn btn-primary"
-                      disabled={passwordLoading}
-                    >
-                      {passwordLoading ? (
-                        <>
-                          <i className="fas fa-spinner fa-spin"></i> Updating...
-                        </>
-                      ) : 'Change Password'}
-                    </button>
-                  </form>
-                </div>
-                
-                {/* Only password change functionality is kept, other settings removed */}
-              </div>
-            )}
+            {/* Settings section removed */}
           </div>
         </div>
       </div>
